@@ -1,0 +1,108 @@
+package mert.kadakal.bulut;
+
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+public class hesap_ekleme_ekranı extends AppCompatActivity {
+    private EditText isim;
+    private EditText parola;
+    private Button btn_ekle;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.hesap_ekleme);
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        SharedPreferences sharedPreferences = getSharedPreferences("myPrefs", MODE_PRIVATE);
+        isim = findViewById(R.id.editTextİsim);
+        parola = findViewById(R.id.editTextParola);
+        btn_ekle = findViewById(R.id.hesap_ekle_button);
+        btn_ekle.setText(getIntent().getStringExtra("giriş/ekle"));
+
+        btn_ekle.setOnClickListener(view -> {
+            if (getIntent().getStringExtra("giriş/ekle").equals("Giriş Yap")) {
+                db.collection("hesaplar")
+                        .get().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                boolean isim_kontrol = false;
+                                String tem_parola = "";
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    if (document.getString("isim").equals(isim.getText().toString())) {
+                                        isim_kontrol = true;
+                                        tem_parola = document.getString("parola");
+                                    }
+                                }
+                                if (isim_kontrol) {
+                                    if (tem_parola.equals(parola.getText().toString())) {
+                                        Toast.makeText(this, "Giriş yapıldı", Toast.LENGTH_SHORT).show();
+
+                                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                                        editor.putBoolean("hesap_açık_mı", true);
+                                        editor.putString("hesap_ismi", isim.getText().toString());
+                                        editor.putString("hesap_şifresi", parola.getText().toString());
+                                        editor.apply();
+
+                                        onBackPressed();
+                                    } else {
+                                        Toast.makeText(this, "Parola yanlış girildi", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    Toast.makeText(this, "Bu isimde bir kullanıcı bulunamadı", Toast.LENGTH_SHORT).show();
+                                }
+                                isim.getText().clear();
+                                parola.getText().clear();
+                            }
+                        });
+            } else {
+                db.collection("hesaplar")
+                        .get().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                boolean isim_kontrol = false;
+                                for (QueryDocumentSnapshot document : task.getResult()) {
+                                    if (document.getString("isim").equals(isim.getText().toString())) {
+                                        isim_kontrol = true;
+                                    }
+                                }
+                                if (isim_kontrol) {
+                                    Toast.makeText(hesap_ekleme_ekranı.this, "Bu isim kullanılıyor", Toast.LENGTH_SHORT).show();
+                                    isim.getText().clear();
+                                    parola.getText().clear();
+                                } else {
+                                    Map<String, Object> eklenen_hesap = new HashMap<>();
+                                    eklenen_hesap.put("isim", isim.getText().toString());
+                                    eklenen_hesap.put("parola", parola.getText().toString());
+                                    db.collection("hesaplar").add(eklenen_hesap);
+
+                                    Toast.makeText(hesap_ekleme_ekranı.this, "Hesap başarıyla oluşturuldu, oturum açıldı", Toast.LENGTH_SHORT).show();
+
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putBoolean("hesap_açık_mı", true);
+                                    editor.putString("hesap_ismi", isim.getText().toString());
+                                    editor.putString("hesap_şifresi", parola.getText().toString());
+                                    editor.apply();
+
+                                    onBackPressed();
+
+                                    isim.getText().clear();
+                                    parola.getText().clear();
+                                }
+                            }
+                        });
+            }
+        });
+    }
+}

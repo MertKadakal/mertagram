@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "716878949550",
+    "project_id": "bulut-7ae7c",
+    "storage_bucket": "bulut-7ae7c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:716878949550:android:ed86d376111f9f0e53113f",
+        "android_client_info": {
+          "package_name": "mert.kadakal.bulut"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSHPdhMfTuB6HQY8v8uOHaTs3zEIc1A_w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
