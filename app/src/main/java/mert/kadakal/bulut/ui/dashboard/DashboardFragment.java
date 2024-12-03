@@ -63,9 +63,6 @@ public class DashboardFragment extends Fragment {
                         }
                     }
                     adapter.notifyDataSetChanged();  // ListView'i güncelle
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Veriler yüklenemedi!", Toast.LENGTH_SHORT).show();
                 });
     }
 

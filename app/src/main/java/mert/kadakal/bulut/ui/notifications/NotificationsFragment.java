@@ -154,7 +154,7 @@ public class NotificationsFragment extends Fragment {
                                         editor.putBoolean("hesap_açık_mı", false);
                                         editor.apply();
 
-                                        //Toast.makeText(getContext(), "Hesap silindi", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(getContext(), "Hesap silindi", Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             }
