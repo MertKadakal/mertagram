@@ -22,16 +22,24 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -51,16 +59,13 @@ import okhttp3.Response;
 public class NotificationsFragment extends Fragment {
 
     private FragmentNotificationsBinding binding;
-    private Button btn_hesap_ekle;
-    private Button btn_giriş_yap;
-    private Button btn_çıkış_yap;
-    private Button btn_hesabı_sil;
+    private ImageView pp;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     SharedPreferences sharedPreferences;
+    String[] pp_or_post;
 
     private static final String CLIENT_ID = "b9aede4074dcb7a"; // Buraya Imgur'dan aldığınız Client-ID'yi koyun
     private static final int PICK_IMAGE_REQUEST = 1; // Dosya seçme için request kodu
-    ImageView image;
     Button btn;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -68,23 +73,52 @@ public class NotificationsFragment extends Fragment {
         NotificationsViewModel notificationsViewModel =
                 new ViewModelProvider(this).get(NotificationsViewModel.class);
 
-
+        pp_or_post = new String[]{""};
         binding = FragmentNotificationsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
         sharedPreferences = requireActivity().getSharedPreferences("myPrefs", Context.MODE_PRIVATE);
 
-        btn_hesap_ekle = root.findViewById(R.id.hesap_ekle);
-        btn_giriş_yap = root.findViewById(R.id.giriş_yap);
-        btn_çıkış_yap = root.findViewById(R.id.çıkış_yap);
-        btn_hesabı_sil = root.findViewById(R.id.hesabı_sil);
+        Button btn_hesap_ekle = root.findViewById(R.id.hesap_ekle);
+        Button btn_giriş_yap = root.findViewById(R.id.giriş_yap);
+        Button btn_çıkış_yap = root.findViewById(R.id.çıkış_yap);
+        Button btn_hesabı_sil = root.findViewById(R.id.hesabı_sil);
+        Button btn_pp_değiştir = root.findViewById(R.id.pp_değiştir);
+        Button btn_foto_ekle = root.findViewById(R.id.foto_ekle);
+        Button btn_pp_sil = root.findViewById(R.id.pp_sil);
+        TextView isim = root.findViewById(R.id.isim);
+        pp = root.findViewById(R.id.profil_resmi);
 
         if (sharedPreferences.getBoolean("hesap_açık_mı", false)) {
             btn_giriş_yap.setVisibility(View.INVISIBLE);
             btn_hesap_ekle.setVisibility(View.INVISIBLE);
+            isim.setText(sharedPreferences.getString("hesap_ismi", ""));
+            db.collection("hesaplar")
+                    .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                String imageUrl = document.getString("pp_link");
+                                if (!Objects.equals(imageUrl, "") && !imageUrl.isEmpty()) {
+                                    Glide.with(getContext())
+                                            .load(imageUrl)
+                                            .into(pp);
+                                } else {
+                                    pp.setImageResource(R.drawable.person_png);
+                                }
+                            }
+                        }
+                    });
+
         } else {
             btn_çıkış_yap.setVisibility(View.INVISIBLE);
             btn_hesabı_sil.setVisibility(View.INVISIBLE);
+            btn_pp_değiştir.setVisibility(View.INVISIBLE);
+            pp.setVisibility(View.INVISIBLE);
+            btn_foto_ekle.setVisibility(View.INVISIBLE);
+            btn_pp_sil.setVisibility(View.INVISIBLE);
+            isim.setVisibility(View.INVISIBLE);
         }
 
         btn_hesap_ekle.setOnClickListener(view -> startActivity(new Intent(getContext(), hesap_ekleme_ekranı.class).putExtra("giriş/ekle", "Oluştur")));
@@ -92,6 +126,7 @@ public class NotificationsFragment extends Fragment {
         btn_hesabı_sil.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                //hesabın görsellerini sil
                 db.collection("görseller")
                         .whereEqualTo("hesap", sharedPreferences.getString("hesap_ismi", ""))
                         .get()
@@ -105,6 +140,7 @@ public class NotificationsFragment extends Fragment {
                             }
                         });
 
+                //hesabı sil
                 db.collection("hesaplar")
                         .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
                         .get()
@@ -118,7 +154,7 @@ public class NotificationsFragment extends Fragment {
                                         editor.putBoolean("hesap_açık_mı", false);
                                         editor.apply();
 
-                                        Toast.makeText(getContext(), "Hesap silindi", Toast.LENGTH_SHORT).show();
+                                        //Toast.makeText(getContext(), "Hesap silindi", Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             }
@@ -135,16 +171,38 @@ public class NotificationsFragment extends Fragment {
         });
 
 
-        ///////////////////
-        image = root.findViewById(R.id.imageButton);
-        btn = root.findViewById(R.id.foto_ekle);
+        btn_pp_değiştir.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                pp_or_post[0] = "pp";
+                startActivityForResult(intent, PICK_IMAGE_REQUEST);
+            }
+        });
 
-        // Görsel yükleme işlemi için kullanıcıdan görsel seçmesini iste
+        btn = root.findViewById(R.id.foto_ekle);
         btn.setOnClickListener(view -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            pp_or_post[0] = "post";
             startActivityForResult(intent, PICK_IMAGE_REQUEST);
         });
-        //////////////////////////////
+
+        btn_pp_sil.setOnClickListener(view -> {
+            db.collection("hesaplar")
+                    .get().addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                if (document.getString("isim").equals(sharedPreferences.getString("hesap_ismi", ""))) {
+                                    Map<String, Object> updatedField = new HashMap<>();
+                                    updatedField.put("pp_link", "");
+
+                                    db.collection("hesaplar").document(document.getId())
+                                            .update(updatedField);
+                                }
+                            }
+                        }
+                    });
+        });
 
         return root;
     }
@@ -159,7 +217,6 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
             Uri imageUri = data.getData();
             File imageFile = new File(getRealPathFromURI(imageUri));
@@ -214,16 +271,39 @@ public class NotificationsFragment extends Fragment {
                     } catch (JSONException e) {
                         throw new RuntimeException(e);
                     }
-                    Map<String, Object> imageDb = new HashMap<>();
-                    imageDb.put("link", imageUrl);
-                    imageDb.put("hesap", sharedPreferences.getString("hesap_ismi", ""));
-                    db.collection("görseller").add(imageDb);
 
-                    String finalImageUrl = imageUrl;
-                    getActivity().runOnUiThread(() -> {
-                        // Glide kullanarak görseli ImageView'a yükle
-                        Glide.with(NotificationsFragment.this).load(finalImageUrl).into(image);
-                    });
+                    //pp değiştir veya post yükle
+                    if (pp_or_post[0].equals("post")) {
+                        // Belirli bir tarih oluşturma: 2 Aralık 2024, 10:30
+                        Calendar calendar = Calendar.getInstance();
+                        Date specificDate = calendar.getTime();
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy 'at' HH:mm", Locale.ENGLISH);
+                        String formattedDate = dateFormat.format(specificDate);
+
+                        Map<String, Object> imageDb = new HashMap<>();
+                        imageDb.put("link", imageUrl);
+                        imageDb.put("hesap", sharedPreferences.getString("hesap_ismi", ""));
+                        imageDb.put("tarih", formattedDate);
+                        imageDb.put("beğeni", 0);
+
+                        db.collection("görseller").add(imageDb);
+                    } else {
+                        db.collection("hesaplar")
+                                .get().addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        for (QueryDocumentSnapshot document : task.getResult()) {
+                                            if (document.getString("isim").equals(sharedPreferences.getString("hesap_ismi", ""))) {
+                                                Map<String, Object> updatedField = new HashMap<>();
+                                                updatedField.put("pp_link", imageUrl);
+
+                                                db.collection("hesaplar").document(document.getId())
+                                                        .update(updatedField);
+                                            }
+                                        }
+                                    }
+                                });
+                    }
                 } else {
                     getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Yükleme başarısız", Toast.LENGTH_SHORT).show());
                 }
