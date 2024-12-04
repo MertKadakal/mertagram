@@ -3,35 +3,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/black">
 
-    <ListView
-        android:id="@+id/list_yorumlar"
-        android:layout_width="match_parent"
-        android:layout_height="584dp"
+    <EditText
+        android:id="@+id/yapılan_yorum"
+        android:layout_width="315dp"
+        android:layout_height="191dp"
+        android:layout_marginTop="140dp"
+        android:background="#ffffff"
+        android:ems="10"
+        android:hint="Yorumunuzu giriniz"
+        android:inputType="textMultiLine"
+        android:padding="10dp"
+        android:textColor="#000000"
+        android:textColorHint="#BC9E9E"
+        android:textColorLink="#D17373"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <TextView
-        android:id="@+id/yorum_yok"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Henüz yorum yok"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/list_yorumlar" />
-
     <Button
-        android:id="@+id/yorum_ekle"
+        android:id="@+id/ekle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="600dp"
-        android:text="Yorum ekle"
+        android:layout_marginTop="20dp"
+        android:text="Tamam"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/yapılan_yorum" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

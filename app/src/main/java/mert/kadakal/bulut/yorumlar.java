@@ -1,5 +1,6 @@
 package mert.kadakal.bulut;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Html;
@@ -28,6 +29,7 @@ public class yorumlar extends AppCompatActivity {
     private YorumlarAdapter adapter;
     private ListView list;
     private TextView yorum_yok;
+    private Button yorum_ekle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +41,10 @@ public class yorumlar extends AppCompatActivity {
         adapter  = new YorumlarAdapter(this, items, getIntent().getStringExtra("görsel_link"));
         list = findViewById(R.id.list_yorumlar);
         yorum_yok = findViewById(R.id.yorum_yok);
+        yorum_ekle = findViewById(R.id.yorum_ekle);
+        if (!(sharedPreferences.getBoolean("hesap_açık_mı", false))) {
+            yorum_ekle.setVisibility(View.INVISIBLE);
+        }
 
         for (String yorum : getIntent().getStringArrayListExtra("yorumlar_list")) {
             items.add(yorum);
@@ -50,5 +56,14 @@ public class yorumlar extends AppCompatActivity {
             yorum_yok.setVisibility(View.INVISIBLE);
             list.setAdapter(adapter);
         }
+
+        yorum_ekle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(yorumlar.this, mert.kadakal.bulut.yorum_ekle.class)
+                        .putExtra("link", getIntent().getStringExtra("görsel_link"));
+                startActivity(intent);
+            }
+        });
     }
 }
