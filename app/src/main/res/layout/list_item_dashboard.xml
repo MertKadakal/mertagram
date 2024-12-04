@@ -35,9 +35,9 @@
             android:text="Yorumlar"
             android:layout_marginRight="5dp"/>
         <Button
-            android:id="@+id/yorumu_sil"
+            android:id="@+id/kaldır"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Yorumu sil" />
+            android:text="Kaldır" />
     </LinearLayout>
 </LinearLayout>
