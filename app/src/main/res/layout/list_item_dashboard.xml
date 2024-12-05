@@ -3,41 +3,45 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="8dp">
-
-    <ImageView
-        android:id="@+id/image_view"
-        android:layout_width="match_parent"
-        android:layout_height="300dp"
-        android:layout_marginEnd="8dp"
-        android:src="@drawable/ic_launcher_foreground" />
+    android:padding="8dp"
+    >
 
     <TextView
         android:id="@+id/text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Item Name"
+        android:textColor="@color/black"
         android:textSize="16sp" />
+
+    <ImageView
+        android:id="@+id/image_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/ic_launcher_foreground" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:paddingTop="5dp">
+
+        <Button
+            android:id="@+id/yorumlar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"
+            android:text="Yorumlar" />
         <Button
             android:id="@+id/beğen"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginRight="5dp"/>
-        <Button
-            android:id="@+id/yorumlar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Yorumlar"
-            android:layout_marginRight="5dp"/>
-        <Button
+        <ImageView
             android:id="@+id/kaldır"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Kaldır" />
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="@drawable/remove"/>
     </LinearLayout>
 </LinearLayout>

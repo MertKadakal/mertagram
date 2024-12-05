@@ -2,13 +2,11 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@drawable/simple_background">
 
-    <!-- Mevcut TextView -->
-
-    <!-- ListView -->
     <ListView
         android:id="@+id/list_dashboard"
         android:layout_width="match_parent"
-        android:layout_height="584dp" />
+        android:layout_height="680dp" />
 </LinearLayout>

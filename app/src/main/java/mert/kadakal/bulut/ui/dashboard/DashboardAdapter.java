@@ -3,6 +3,7 @@ package mert.kadakal.bulut.ui.dashboard;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +29,7 @@ public class DashboardAdapter extends BaseAdapter {
     private final List<DashboardItem> items;
     private Button btn_beğen;
     private Button btn_yorumlar;
-    private Button btn_görseli_kaldır;
+    private ImageView btn_görseli_kaldır;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     SharedPreferences sharedPreferences;
 
@@ -72,81 +73,59 @@ public class DashboardAdapter extends BaseAdapter {
             if (!(item.getHesap().equals(sharedPreferences.getString("hesap_ismi", "")))) {
                 btn_görseli_kaldır.setVisibility(View.INVISIBLE);
             }
-            db.collection("hesaplar")
-                    .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+
+            db.collection("görseller")
+                    .whereEqualTo("link", item.getLink())
                     .get()
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                            for (DocumentSnapshot document : task.getResult()) {
-                                List<String> begenilenler = (List<String>) document.get("beğenilenler");
-
-                                for (String link : begenilenler) {
-                                    if (link.equals(item.getLink())) {
-                                        btn_beğen.setText("Beğeniyi geri çek");
-                                    }
+                            for (DocumentSnapshot document : task.getResult().getDocuments()) {
+                                List<String> arrayList = (List<String>) document.get("beğenenler");
+                                btn_beğen.setText("\uD83D\uDC4D");
+                                if (arrayList != null && arrayList.contains(sharedPreferences.getString("hesap_ismi", ""))) {
+                                    btn_beğen.setText("\uD83D\uDC4E");
                                 }
                             }
                         }
                     });
-            if (!(btn_beğen.getText().toString().equals("Beğeniyi geri çek"))) {
-                btn_beğen.setText("Beğen");
-            }
         }
 
-        btn_beğen.setOnClickListener(view -> {
-            String link = item.getLink();
-            String hesapIsmi = sharedPreferences.getString("hesap_ismi", "");
+        btn_beğen.setOnClickListener(view ->
+                db.collection("görseller")
+                .whereEqualTo("link", item.getLink())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            if (btn_beğen.getText().toString().equals("\uD83D\uDC4E")) { //beğeniyi geri çek
 
-            // Görsel beğeni sayısını artır
-            db.collection("görseller")
-                    .whereEqualTo("link", link)
-                    .get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                            for (DocumentSnapshot document : task.getResult()) {
-                                if (btn_beğen.getText().toString().equals("Beğeniyi geri çek")) {
-                                    db.collection("hesaplar")
-                                            .whereEqualTo("isim", hesapIsmi)
-                                            .get()
-                                            .addOnCompleteListener(task1 -> {
-                                                if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                                                    for (DocumentSnapshot document1 : task1.getResult()) {
-                                                        db.collection("hesaplar")
-                                                                .document(document1.getId())
-                                                                .update("beğenilenler", FieldValue.arrayRemove(item.getLink()));
+                                db.collection("görseller")
+                                        .document(document.getId())
+                                        .update("beğeni", FieldValue.increment(-1));
 
-                                                        db.collection("görseller")
-                                                                .whereEqualTo("link", item.getLink())
-                                                                .get()
-                                                                .addOnCompleteListener(task2 -> {
-                                                                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                                                                        for (DocumentSnapshot document2 : task2.getResult()) {
-                                                                            db.collection("görseller")
-                                                                                    .document(document2.getId())
-                                                                                    .update("beğeni", FieldValue.increment(-1));
-                                                                        }
-                                                                    }
-                                                                });
+                                db.collection("görseller")
+                                        .document(document.getId())
+                                        .update("beğenenler", FieldValue.arrayRemove(sharedPreferences.getString("hesap_ismi", "")));
 
-                                                        btn_beğen.setText("Beğen");
-                                                    }
-                                                }
-                                            });
-                                } else {
-                                    db.collection("görseller")
-                                            .document(document.getId())
-                                            .update("beğeni", FieldValue.increment(1))
-                                            .addOnSuccessListener(aVoid -> {
-                                                // Hesabın beğenilen görsellerine ekle
-                                                begeniyiHesabaEkle(hesapIsmi, link);
-                                                btn_beğen.setText("Beğeniyi geri çek");
-                                            });
-                                }
+                                btn_beğen.setText("\uD83D\uDC4D");
+                                textView.setText(Html.fromHtml(String.format("<br><b>Yükleyen:</b> %s<br>%s<br><b>%d</b> beğeni<br>", item.getHesap(), item.getTarih(), item.getBeğeni_sayısı())));
+
+                            } else { //beğen
+
+                                db.collection("görseller")
+                                        .document(document.getId())
+                                        .update("beğeni", FieldValue.increment(1));
+
+                                db.collection("görseller")
+                                        .document(document.getId())
+                                        .update("beğenenler", FieldValue.arrayUnion(sharedPreferences.getString("hesap_ismi", "")));
+
+                                btn_beğen.setText("\uD83D\uDC4E");
+                                textView.setText(Html.fromHtml(String.format("<br><b>Yükleyen:</b> %s<br>%s<br><b>%d</b> beğeni<br>", item.getHesap(), item.getTarih(), item.getBeğeni_sayısı()+1)));
                             }
                         }
-                    });
-
-        });
+                    }
+                }));
 
         btn_yorumlar.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -186,32 +165,9 @@ public class DashboardAdapter extends BaseAdapter {
         Glide.with(context)
                 .load(item.getLink())
                 .into(imageView);
-        textView.setText(String.format("Yükleyen: %s\n%s\n%d kişi beğendi", item.getHesap(), item.getTarih(), item.getBeğeni_sayısı()));
+
+        textView.setText(Html.fromHtml(String.format("<br><b>Yükleyen:</b> %s<br>%s<br><b>%d</b> beğeni<br>", item.getHesap(), item.getTarih(), item.getBeğeni_sayısı())));
 
         return convertView;
-    }
-
-    // Beğenilen görseli hesaba ekleyen metod
-    private void begeniyiHesabaEkle(String hesapIsmi, String link) {
-        db.collection("hesaplar")
-                .whereEqualTo("isim", hesapIsmi)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                        for (DocumentSnapshot document : task.getResult()) {
-                            db.collection("hesaplar")
-                                    .document(document.getId())
-                                    .update("beğenilenler", FieldValue.arrayUnion(link))
-                                    .addOnSuccessListener(aVoid -> {
-                                        System.out.println("Beğenilen görsel hesaba eklendi.");
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        System.err.println("Beğenilen görsel hesaba eklenemedi: " + e.getMessage());
-                                    });
-                        }
-                    } else {
-                        System.out.println("Hesap bulunamadı veya sorgu hatası.");
-                    }
-                });
     }
 }

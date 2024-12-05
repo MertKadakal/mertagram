@@ -35,6 +35,7 @@ import org.w3c.dom.Text;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -76,6 +77,7 @@ public class NotificationsFragment extends Fragment {
         pp_or_post = new String[]{""};
         binding = FragmentNotificationsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+        btn = root.findViewById(R.id.foto_ekle);
 
         sharedPreferences = requireActivity().getSharedPreferences("myPrefs", Context.MODE_PRIVATE);
 
@@ -84,7 +86,6 @@ public class NotificationsFragment extends Fragment {
         Button btn_çıkış_yap = root.findViewById(R.id.çıkış_yap);
         Button btn_hesabı_sil = root.findViewById(R.id.hesabı_sil);
         Button btn_pp_değiştir = root.findViewById(R.id.pp_değiştir);
-        Button btn_foto_ekle = root.findViewById(R.id.foto_ekle);
         Button btn_pp_sil = root.findViewById(R.id.pp_sil);
         TextView isim = root.findViewById(R.id.isim);
         pp = root.findViewById(R.id.profil_resmi);
@@ -113,10 +114,10 @@ public class NotificationsFragment extends Fragment {
 
         } else {
             btn_çıkış_yap.setVisibility(View.INVISIBLE);
+            btn.setVisibility(View.INVISIBLE);
             btn_hesabı_sil.setVisibility(View.INVISIBLE);
             btn_pp_değiştir.setVisibility(View.INVISIBLE);
             pp.setVisibility(View.INVISIBLE);
-            btn_foto_ekle.setVisibility(View.INVISIBLE);
             btn_pp_sil.setVisibility(View.INVISIBLE);
             isim.setVisibility(View.INVISIBLE);
         }
@@ -140,6 +141,20 @@ public class NotificationsFragment extends Fragment {
                             }
                         });
 
+                //hesabın beğendiği görsellerin "beğenenler" arraylerinden hesabı sil
+                db.collection("görseller").get().addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        if (!task.getResult().isEmpty()) {
+                            for (DocumentSnapshot document : task.getResult()) {
+                                db.collection("görseller").document(document.getId())
+                                        .update("beğenenler", FieldValue.arrayRemove(sharedPreferences.getString("hesap_ismi", "")));
+                                db.collection("görseller").document(document.getId())
+                                        .update("beğeni", FieldValue.increment(-1));
+                            }
+                        }
+                    }
+                });
+
                 //hesabı sil
                 db.collection("hesaplar")
                         .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
@@ -161,6 +176,7 @@ public class NotificationsFragment extends Fragment {
                         });
             }
         });
+
         btn_çıkış_yap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -169,7 +185,6 @@ public class NotificationsFragment extends Fragment {
                 editor.apply();
             }
         });
-
 
         btn_pp_değiştir.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -180,13 +195,14 @@ public class NotificationsFragment extends Fragment {
             }
         });
 
-        btn = root.findViewById(R.id.foto_ekle);
+        //görsel ekleme
         btn.setOnClickListener(view -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             pp_or_post[0] = "post";
             startActivityForResult(intent, PICK_IMAGE_REQUEST);
         });
 
+        //pp sil
         btn_pp_sil.setOnClickListener(view -> {
             db.collection("hesaplar")
                     .get().addOnCompleteListener(task -> {
@@ -275,10 +291,9 @@ public class NotificationsFragment extends Fragment {
                     //pp değiştir veya post yükle
                     if (pp_or_post[0].equals("post")) {
                         // Belirli bir tarih oluşturma: 2 Aralık 2024, 10:30
-                        Calendar calendar = Calendar.getInstance();
-                        Date specificDate = calendar.getTime();
 
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("MMMM d, yyyy 'at' HH:mm", Locale.ENGLISH);
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
+                        Date specificDate = new Date();  // Örnek tarih, kendi tarihini burada belirleyebilirsin.
                         String formattedDate = dateFormat.format(specificDate);
 
                         Map<String, Object> imageDb = new HashMap<>();
