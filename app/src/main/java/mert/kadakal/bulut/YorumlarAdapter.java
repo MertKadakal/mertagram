@@ -2,6 +2,7 @@ package mert.kadakal.bulut;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.Image;
 import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,7 +27,7 @@ public class YorumlarAdapter extends BaseAdapter {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     SharedPreferences sharedPreferences;
     private TextView yorum_içerigi;
-    private Button yorumu_sil;
+    private ImageView yorumu_sil;
     private String link;
 
     public YorumlarAdapter(Context context, List<String> items, String link) {
@@ -64,8 +66,10 @@ public class YorumlarAdapter extends BaseAdapter {
         }
 
         String yorum_içeriği_str = item;
+        String yorumcu = item.split("<br><br>")[0];
+        String yorum = item.split("<br><br>")[1];
         yorum_içerigi = convertView.findViewById(R.id.yorum_içeriği);
-        yorum_içerigi.setText(Html.fromHtml(item));
+        yorum_içerigi.setText(Html.fromHtml("<b>" + yorumcu + "</b><br><br>'" + yorum + "'"));
 
         yorumu_sil.setOnClickListener(new View.OnClickListener() {
             @Override

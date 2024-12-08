@@ -11,6 +11,7 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -156,6 +157,7 @@ public class DashboardAdapter extends BaseAdapter {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
                         for (DocumentSnapshot document : task.getResult()) {
                             db.collection("görseller").document(document.getId()).delete();
+                            Toast.makeText(context, "Görsel silindi", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });

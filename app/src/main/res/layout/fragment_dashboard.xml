@@ -8,5 +8,7 @@
     <ListView
         android:id="@+id/list_dashboard"
         android:layout_width="match_parent"
-        android:layout_height="680dp" />
+        android:layout_height="671dp"
+        android:dividerHeight="3dp"
+        android:divider="@color/black"/>
 </LinearLayout>

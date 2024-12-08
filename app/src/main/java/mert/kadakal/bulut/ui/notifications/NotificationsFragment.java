@@ -104,7 +104,9 @@ public class NotificationsFragment extends Fragment {
                                 if (!Objects.equals(imageUrl, "") && !imageUrl.isEmpty()) {
                                     Glide.with(getContext())
                                             .load(imageUrl)
+                                            .placeholder(R.drawable.loading)  // Yüklenirken gösterilecek "loading" görseli
                                             .into(pp);
+
                                 } else {
                                     pp.setImageResource(R.drawable.person_png);
                                 }
@@ -183,6 +185,7 @@ public class NotificationsFragment extends Fragment {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putBoolean("hesap_açık_mı", false);
                 editor.apply();
+                Toast.makeText(getContext(), "Hesaptan çıkış yapıldı", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -191,6 +194,7 @@ public class NotificationsFragment extends Fragment {
             public void onClick(View view) {
                 Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 pp_or_post[0] = "pp";
+                Toast.makeText(getContext(), "Profil resmi yükleniyor...", Toast.LENGTH_SHORT).show();
                 startActivityForResult(intent, PICK_IMAGE_REQUEST);
             }
         });
@@ -199,6 +203,7 @@ public class NotificationsFragment extends Fragment {
         btn.setOnClickListener(view -> {
             Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
             pp_or_post[0] = "post";
+            Toast.makeText(getContext(), "Yükleniyor...", Toast.LENGTH_SHORT).show();
             startActivityForResult(intent, PICK_IMAGE_REQUEST);
         });
 
@@ -214,6 +219,8 @@ public class NotificationsFragment extends Fragment {
 
                                     db.collection("hesaplar").document(document.getId())
                                             .update(updatedField);
+
+                                    Toast.makeText(getContext(), "Profil resmi silindi", Toast.LENGTH_SHORT).show();
                                 }
                             }
                         }
@@ -279,7 +286,7 @@ public class NotificationsFragment extends Fragment {
             public void onResponse(Call call, Response response) throws IOException {
                 if (response.isSuccessful()) {
                     String responseData = response.body().string();
-                    getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Görsel başarıyla yüklendi!", Toast.LENGTH_SHORT).show());
+
                     // JSON yanıtını işleyebilirsiniz, örneğin:
                     String imageUrl;
                     try {
@@ -301,8 +308,10 @@ public class NotificationsFragment extends Fragment {
                         imageDb.put("hesap", sharedPreferences.getString("hesap_ismi", ""));
                         imageDb.put("tarih", formattedDate);
                         imageDb.put("beğeni", 0);
+                        imageDb.put("yorumlar", new ArrayList<>());
 
                         db.collection("görseller").add(imageDb);
+                        getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Görsel başarıyla yüklendi!", Toast.LENGTH_SHORT).show());
                     } else {
                         db.collection("hesaplar")
                                 .get().addOnCompleteListener(task -> {
@@ -318,6 +327,7 @@ public class NotificationsFragment extends Fragment {
                                         }
                                     }
                                 });
+                        getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Profil resmi başarıyla yüklendi!", Toast.LENGTH_SHORT).show());
                     }
                 } else {
                     getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Yükleme başarısız", Toast.LENGTH_SHORT).show());
