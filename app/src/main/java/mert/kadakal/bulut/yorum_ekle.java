@@ -67,7 +67,7 @@ public class yorum_ekle extends AppCompatActivity {
                                                         // "bildirimler" alanına yeni eleman ekle
                                                         db.collection("hesaplar")
                                                                 .document(document2.getId())
-                                                                .update("bildirimler", FieldValue.arrayUnion("<b>"+sharedPreferences.getString("hesap_ismi", "") + "</b>, şu gönderine yorum yaptı: <i>" + görsel_başlığı + "</i>"));
+                                                                .update("bildirimler", FieldValue.arrayUnion("<b>"+sharedPreferences.getString("hesap_ismi", "") + "</b>, şu gönderine yorum yaptı: <i>" + görsel_başlığı + "</i><bildirim>yeni yorum"));
                                                     }
                                                 }
                                             }

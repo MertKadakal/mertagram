@@ -121,6 +121,7 @@ public class NotificationsFragment extends Fragment {
         } else {
             btn_çıkış_yap.setVisibility(View.INVISIBLE);
             btn.setVisibility(View.INVISIBLE);
+            başlık.setVisibility(View.INVISIBLE);
             btn_hesabı_sil.setVisibility(View.INVISIBLE);
             btn_pp_değiştir.setVisibility(View.INVISIBLE);
             pp.setVisibility(View.INVISIBLE);
@@ -186,7 +187,7 @@ public class NotificationsFragment extends Fragment {
         btn_çıkış_yap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Hesaptan çıkış yapıldı");
+                bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Hesaptan çıkış yapıldı<bildirim>çıkış");
 
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putBoolean("hesap_açık_mı", false);
@@ -231,7 +232,7 @@ public class NotificationsFragment extends Fragment {
                                     Toast.makeText(getContext(), "Profil resmi silindi", Toast.LENGTH_SHORT).show();
 
                                     String görsel_sahibi = document.getString("hesap");
-                                    bildirim_ekle(görsel_sahibi, "Profil resmi silindi");
+                                    bildirim_ekle(görsel_sahibi, "Profil resmi silindi<br>pp");
                                 }
                             }
                         }
@@ -344,7 +345,7 @@ public class NotificationsFragment extends Fragment {
 
                         db.collection("görseller").add(imageDb);
                         getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Görsel başarıyla yüklendi!", Toast.LENGTH_SHORT).show());
-                        bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Yeni görsel yüklendi: <i>" + tem_başlık + "</i>");
+                        bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Yeni görsel yüklendi: <i>" + tem_başlık + "</i><bildirim>yeni görsel");
                     } else {
                         db.collection("hesaplar")
                                 .get().addOnCompleteListener(task -> {
@@ -361,7 +362,7 @@ public class NotificationsFragment extends Fragment {
                                     }
                                 });
                         getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Profil resmi başarıyla yüklendi!", Toast.LENGTH_SHORT).show());
-                        bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Profil resmi güncellendi");
+                        bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Profil resmi güncellendi<bildirim>pp");
                     }
                 } else {
                     getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Yükleme başarısız", Toast.LENGTH_SHORT).show());

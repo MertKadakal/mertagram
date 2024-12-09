@@ -146,7 +146,7 @@ public class DashboardAdapter extends BaseAdapter {
                                                                             // "bildirimler" alanına yeni eleman ekle
                                                                             db.collection("hesaplar")
                                                                                     .document(document2.getId())
-                                                                                    .update("bildirimler", FieldValue.arrayUnion("<b>"+sharedPreferences.getString("hesap_ismi", "") + "</b>, şu gönderini beğendi: <i>" + görsel_başlığı + "</i>"));
+                                                                                    .update("bildirimler", FieldValue.arrayUnion("<b>"+sharedPreferences.getString("hesap_ismi", "") + "</b>, şu gönderini beğendi: <i>" + görsel_başlığı + "</i><bildirim>beğeni"));
                                                                         }
                                                                     }
                                                                 }

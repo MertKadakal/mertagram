@@ -15,6 +15,8 @@ import androidx.fragment.app.Fragment;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -26,6 +28,7 @@ import mert.kadakal.bulut.databinding.FragmentNotificationsBinding;
 public class HomeFragment extends Fragment {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     SharedPreferences sharedPreferences;
+    TextView yok;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -34,30 +37,37 @@ public class HomeFragment extends Fragment {
         sharedPreferences = getContext().getSharedPreferences("myPrefs", Context.MODE_PRIVATE);
         // ListView'i bul
         ListView listView = rootView.findViewById(R.id.bildirimler_list);
+        yok = rootView.findViewById(R.id.bildirim_yok);
 
         List<String> notificationList = new ArrayList<>();
 
-        db.collection("hesaplar")
-                .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", "")) // "isim" alanı "mert" olan belgeleri bul
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            // "bildirimler" alanını al
-                            List<String> bildirimler = (List<String>) document.get("bildirimler");
-                            if (bildirimler != null) {
-                                Collections.reverse(bildirimler);
-                                notificationList.addAll(bildirimler);
+        if (sharedPreferences.getBoolean("hesap_açık_mı", false)) {
+            yok.setText("Henüz bildirim yok");
+            db.collection("hesaplar")
+                    .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                // "bildirimler" alanını al
+                                List<String> bildirimler = (List<String>) document.get("bildirimler");
+                                if (bildirimler != null) {
+                                    Collections.reverse(bildirimler);
+                                    notificationList.addAll(bildirimler);
+                                }
+                            }
+
+                            // Adapter'i oluştur ve ListView'e bağla
+                            if (notificationList.size() != 0) {
+                                yok.setVisibility(View.INVISIBLE);
+                                HomeAdapter adapter = new HomeAdapter(requireContext(), notificationList);
+                                listView.setAdapter(adapter);
                             }
                         }
-
-                        // Adapter'i oluştur ve ListView'e bağla
-                        if (notificationList.size() != 0) {
-                            HomeAdapter adapter = new HomeAdapter(requireContext(), notificationList);
-                            listView.setAdapter(adapter);
-                        }
-                    }
-                });
+                    });
+        } else {
+            yok.setText("Bildirimler için oturum açın");
+        }
 
         return rootView;
     }

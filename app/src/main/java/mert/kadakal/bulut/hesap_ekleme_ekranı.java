@@ -9,6 +9,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -56,6 +57,22 @@ public class hesap_ekleme_ekranı extends AppCompatActivity {
                                         editor.putString("hesap_şifresi", parola.getText().toString());
                                         editor.apply();
 
+                                        db.collection("hesaplar")
+                                                .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                                                .get()
+                                                .addOnCompleteListener(task2 -> {
+                                                    if (task2.isSuccessful()) {
+                                                        if (!task2.getResult().isEmpty()) {
+                                                            for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                                // "bildirimler" alanına yeni eleman ekle
+                                                                db.collection("hesaplar")
+                                                                        .document(document2.getId())
+                                                                        .update("bildirimler", FieldValue.arrayUnion("Hesaba giriş yapıldı<bildirim>giriş"));
+                                                            }
+                                                        }
+                                                    }
+                                                });
+
                                         onBackPressed();
                                     } else {
                                         Toast.makeText(this, "Parola yanlış girildi", Toast.LENGTH_SHORT).show();
@@ -96,6 +113,22 @@ public class hesap_ekleme_ekranı extends AppCompatActivity {
                                     editor.putString("hesap_ismi", isim.getText().toString());
                                     editor.putString("hesap_şifresi", parola.getText().toString());
                                     editor.apply();
+
+                                    db.collection("hesaplar")
+                                            .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                                            .get()
+                                            .addOnCompleteListener(task2 -> {
+                                                if (task2.isSuccessful()) {
+                                                    if (!task2.getResult().isEmpty()) {
+                                                        for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                            // "bildirimler" alanına yeni eleman ekle
+                                                            db.collection("hesaplar")
+                                                                    .document(document2.getId())
+                                                                    .update("bildirimler", FieldValue.arrayUnion("Hesap oluşturuldu<bildirim>oluştur"));
+                                                        }
+                                                    }
+                                                }
+                                            });
 
                                     onBackPressed();
 
