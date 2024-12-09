@@ -14,9 +14,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -120,6 +124,36 @@ public class DashboardAdapter extends BaseAdapter {
                                 db.collection("görseller")
                                         .document(document.getId())
                                         .update("beğenenler", FieldValue.arrayUnion(sharedPreferences.getString("hesap_ismi", "")));
+
+                                db.collection("görseller")
+                                        .document(document.getId())
+                                        .get()
+                                        .addOnCompleteListener(task1 -> {
+                                            if (task1.isSuccessful()) {
+                                                DocumentSnapshot document12 = task1.getResult();
+                                                if (document12.exists()) {
+                                                    // Alanın değerini al
+                                                    String görsel_sahibi = document12.getString("hesap");
+                                                    String görsel_başlığı = document12.getString("başlık");
+
+                                                    db.collection("hesaplar")
+                                                            .whereEqualTo("isim", görsel_sahibi)
+                                                            .get()
+                                                            .addOnCompleteListener(task2 -> {
+                                                                if (task2.isSuccessful()) {
+                                                                    if (!task2.getResult().isEmpty()) {
+                                                                        for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                                            // "bildirimler" alanına yeni eleman ekle
+                                                                            db.collection("hesaplar")
+                                                                                    .document(document2.getId())
+                                                                                    .update("bildirimler", FieldValue.arrayUnion("<b>"+sharedPreferences.getString("hesap_ismi", "") + "</b>, gönderini beğendi: <i>" + görsel_başlığı + "</i>"));
+                                                                        }
+                                                                    }
+                                                                }
+                                                            });
+                                                }
+                                            }
+                                        });
 
                                 btn_beğen.setText("\uD83D\uDC4E");
                                 textView.setText(Html.fromHtml(String.format("<br><b>Yükleyen:</b> %s<br>%s<br><b>%d</b> beğeni<br>", item.getHesap(), item.getTarih(), item.getBeğeni_sayısı()+1)));

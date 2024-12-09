@@ -308,6 +308,7 @@ public class NotificationsFragment extends Fragment {
                         imageDb.put("hesap", sharedPreferences.getString("hesap_ismi", ""));
                         imageDb.put("tarih", formattedDate);
                         imageDb.put("beğeni", 0);
+                        imageDb.put("başlık", "gönder başlığı");
                         imageDb.put("yorumlar", new ArrayList<>());
 
                         db.collection("görseller").add(imageDb);

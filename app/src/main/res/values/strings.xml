@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">Bulut</string>
-    <string name="title_home">Home</string>
+    <string name="title_home">Bildirimler</string>
     <string name="title_dashboard">Akış</string>
     <string name="title_notifications">Hesabım</string>
 </resources>

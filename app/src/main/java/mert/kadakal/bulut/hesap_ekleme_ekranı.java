@@ -86,6 +86,7 @@ public class hesap_ekleme_ekranı extends AppCompatActivity {
                                     eklenen_hesap.put("isim", isim.getText().toString());
                                     eklenen_hesap.put("parola", parola.getText().toString());
                                     eklenen_hesap.put("pp_link", "");
+                                    eklenen_hesap.put("bildirimler", new ArrayList<>());
                                     db.collection("hesaplar").add(eklenen_hesap);
 
                                     Toast.makeText(hesap_ekleme_ekranı.this, "Hesap başarıyla oluşturuldu, oturum açıldı", Toast.LENGTH_SHORT).show();
