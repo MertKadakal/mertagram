@@ -8,11 +8,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,6 +63,7 @@ public class NotificationsFragment extends Fragment {
 
     private FragmentNotificationsBinding binding;
     private ImageView pp;
+    private EditText başlık;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     SharedPreferences sharedPreferences;
     String[] pp_or_post;
@@ -89,6 +92,7 @@ public class NotificationsFragment extends Fragment {
         Button btn_pp_sil = root.findViewById(R.id.pp_sil);
         TextView isim = root.findViewById(R.id.isim);
         pp = root.findViewById(R.id.profil_resmi);
+        başlık = root.findViewById(R.id.başlık);
 
         if (sharedPreferences.getBoolean("hesap_açık_mı", false)) {
             btn_giriş_yap.setVisibility(View.INVISIBLE);
@@ -182,6 +186,8 @@ public class NotificationsFragment extends Fragment {
         btn_çıkış_yap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Hesaptan çıkış yapıldı");
+
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.putBoolean("hesap_açık_mı", false);
                 editor.apply();
@@ -194,17 +200,19 @@ public class NotificationsFragment extends Fragment {
             public void onClick(View view) {
                 Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
                 pp_or_post[0] = "pp";
-                Toast.makeText(getContext(), "Profil resmi yükleniyor...", Toast.LENGTH_SHORT).show();
                 startActivityForResult(intent, PICK_IMAGE_REQUEST);
             }
         });
 
         //görsel ekleme
         btn.setOnClickListener(view -> {
-            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-            pp_or_post[0] = "post";
-            Toast.makeText(getContext(), "Yükleniyor...", Toast.LENGTH_SHORT).show();
-            startActivityForResult(intent, PICK_IMAGE_REQUEST);
+            if (başlık.getText().toString().isEmpty()) {
+                Toast.makeText(getContext(), "Görselin başlığını girin", Toast.LENGTH_SHORT).show();
+            } else {
+                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                pp_or_post[0] = "post";
+                startActivityForResult(intent, PICK_IMAGE_REQUEST);
+            }
         });
 
         //pp sil
@@ -221,6 +229,9 @@ public class NotificationsFragment extends Fragment {
                                             .update(updatedField);
 
                                     Toast.makeText(getContext(), "Profil resmi silindi", Toast.LENGTH_SHORT).show();
+
+                                    String görsel_sahibi = document.getString("hesap");
+                                    bildirim_ekle(görsel_sahibi, "Profil resmi silindi");
                                 }
                             }
                         }
@@ -228,6 +239,24 @@ public class NotificationsFragment extends Fragment {
         });
 
         return root;
+    }
+
+    private void bildirim_ekle(String hesap, String bildirim) {
+        db.collection("hesaplar")
+                .whereEqualTo("isim", hesap)
+                .get()
+                .addOnCompleteListener(task2 -> {
+                    if (task2.isSuccessful()) {
+                        if (!task2.getResult().isEmpty()) {
+                            for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                // "bildirimler" alanına yeni eleman ekle
+                                db.collection("hesaplar")
+                                        .document(document2.getId())
+                                        .update("bildirimler", FieldValue.arrayUnion(bildirim));
+                            }
+                        }
+                    }
+                });
     }
 
     @Override
@@ -261,7 +290,9 @@ public class NotificationsFragment extends Fragment {
 
     private void uploadImageToImgur(File file) {
         OkHttpClient client = new OkHttpClient();
-
+        Toast.makeText(getContext(), "Yükleniyor...", Toast.LENGTH_SHORT).show();
+        String tem_başlık = başlık.getText().toString();
+        başlık.getText().clear();
         // Görseli yüklemek için Multipart Form-data hazırlıyoruz
         RequestBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
@@ -308,11 +339,12 @@ public class NotificationsFragment extends Fragment {
                         imageDb.put("hesap", sharedPreferences.getString("hesap_ismi", ""));
                         imageDb.put("tarih", formattedDate);
                         imageDb.put("beğeni", 0);
-                        imageDb.put("başlık", "gönder başlığı");
+                        imageDb.put("başlık", tem_başlık);
                         imageDb.put("yorumlar", new ArrayList<>());
 
                         db.collection("görseller").add(imageDb);
                         getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Görsel başarıyla yüklendi!", Toast.LENGTH_SHORT).show());
+                        bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Yeni görsel yüklendi: <i>" + tem_başlık + "</i>");
                     } else {
                         db.collection("hesaplar")
                                 .get().addOnCompleteListener(task -> {
@@ -329,6 +361,7 @@ public class NotificationsFragment extends Fragment {
                                     }
                                 });
                         getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Profil resmi başarıyla yüklendi!", Toast.LENGTH_SHORT).show());
+                        bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Profil resmi güncellendi");
                     }
                 } else {
                     getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Yükleme başarısız", Toast.LENGTH_SHORT).show());

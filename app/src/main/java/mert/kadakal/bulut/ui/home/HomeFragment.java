@@ -16,6 +16,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import mert.kadakal.bulut.R;
@@ -45,6 +46,7 @@ public class HomeFragment extends Fragment {
                             // "bildirimler" alanını al
                             List<String> bildirimler = (List<String>) document.get("bildirimler");
                             if (bildirimler != null) {
+                                Collections.reverse(bildirimler);
                                 notificationList.addAll(bildirimler);
                             }
                         }
