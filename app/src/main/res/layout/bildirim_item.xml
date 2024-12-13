@@ -11,15 +11,34 @@
         android:id="@+id/bildirim_görsel"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_gravity="start" />
-
-    <TextView
-        android:id="@+id/item_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="Title"
-        android:textColor="@color/black"
         android:layout_gravity="center"
-        android:textSize="16sp" />
+        android:layout_marginRight="10dp"
+        android:padding="10dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center">
+
+        <TextView
+            android:id="@+id/item_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Title"
+            android:textColor="@color/black"
+            android:textSize="20sp" />
+
+        <TextView
+            android:id="@+id/item_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/black"
+            android:textSize="12dp"
+            android:text="Tarih"
+            android:layout_marginTop="5dp" />
+
+    </LinearLayout>
+
+
 </LinearLayout>

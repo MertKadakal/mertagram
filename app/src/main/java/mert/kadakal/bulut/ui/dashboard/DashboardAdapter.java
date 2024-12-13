@@ -22,8 +22,11 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import mert.kadakal.bulut.R;
 import mert.kadakal.bulut.yorumlar;
@@ -69,6 +72,7 @@ public class DashboardAdapter extends BaseAdapter {
         btn_görseli_kaldır = convertView.findViewById(R.id.kaldır);
         ImageView imageView = convertView.findViewById(R.id.image_view);
         TextView textView = convertView.findViewById(R.id.text_view);
+        TextView başlık = convertView.findViewById(R.id.item_başlık);
         DashboardItem item = items.get(position);
 
         if (!(sharedPreferences.getBoolean("hesap_açık_mı",false))) {
@@ -135,6 +139,9 @@ public class DashboardAdapter extends BaseAdapter {
                                                     // Alanın değerini al
                                                     String görsel_sahibi = document12.getString("hesap");
                                                     String görsel_başlığı = document12.getString("başlık");
+                                                    SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
+                                                    Date specificDate = new Date();  // Örnek tarih, kendi tarihini burada belirleyebilirsin.
+                                                    String formattedDate = dateFormat.format(specificDate);
 
                                                     db.collection("hesaplar")
                                                             .whereEqualTo("isim", görsel_sahibi)
@@ -146,7 +153,7 @@ public class DashboardAdapter extends BaseAdapter {
                                                                             // "bildirimler" alanına yeni eleman ekle
                                                                             db.collection("hesaplar")
                                                                                     .document(document2.getId())
-                                                                                    .update("bildirimler", FieldValue.arrayUnion("<b>"+sharedPreferences.getString("hesap_ismi", "") + "</b>, şu gönderini beğendi: <i>" + görsel_başlığı + "</i><bildirim>beğeni"));
+                                                                                    .update("bildirimler", FieldValue.arrayUnion("<b>"+sharedPreferences.getString("hesap_ismi", "") + "</b>, şu gönderini beğendi: <i>" + görsel_başlığı + "</i><bildirim>beğeni<tarih>" + formattedDate));
                                                                         }
                                                                     }
                                                                 }
@@ -203,6 +210,16 @@ public class DashboardAdapter extends BaseAdapter {
                 .into(imageView);
 
         textView.setText(Html.fromHtml(String.format("<br><b>Yükleyen:</b> %s<br>%s<br><b>%d</b> beğeni<br>", item.getHesap(), item.getTarih(), item.getBeğeni_sayısı())));
+
+        db.collection("görseller").whereEqualTo("link", item.getLink()).get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                for (DocumentSnapshot document : task.getResult()) {
+                    başlık.setText(Html.fromHtml("<b>"+ document.get("başlık")  +"</b>"));
+                }
+            }
+        });
+
+
 
         return convertView;
     }

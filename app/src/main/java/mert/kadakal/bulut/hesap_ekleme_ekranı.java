@@ -13,8 +13,11 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class hesap_ekleme_ekranı extends AppCompatActivity {
@@ -26,6 +29,10 @@ public class hesap_ekleme_ekranı extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.hesap_ekleme);
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
+        Date specificDate = new Date();  // Örnek tarih, kendi tarihini burada belirleyebilirsin.
+        String formattedDate = dateFormat.format(specificDate);
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         SharedPreferences sharedPreferences = getSharedPreferences("myPrefs", MODE_PRIVATE);
@@ -67,7 +74,7 @@ public class hesap_ekleme_ekranı extends AppCompatActivity {
                                                                 // "bildirimler" alanına yeni eleman ekle
                                                                 db.collection("hesaplar")
                                                                         .document(document2.getId())
-                                                                        .update("bildirimler", FieldValue.arrayUnion("Hesaba giriş yapıldı<bildirim>giriş"));
+                                                                        .update("bildirimler", FieldValue.arrayUnion("Hesaba giriş yapıldı<bildirim>giriş<tarih>"+formattedDate));
                                                             }
                                                         }
                                                     }
@@ -124,7 +131,7 @@ public class hesap_ekleme_ekranı extends AppCompatActivity {
                                                             // "bildirimler" alanına yeni eleman ekle
                                                             db.collection("hesaplar")
                                                                     .document(document2.getId())
-                                                                    .update("bildirimler", FieldValue.arrayUnion("Hesap oluşturuldu<bildirim>oluştur"));
+                                                                    .update("bildirimler", FieldValue.arrayUnion("Hesap oluşturuldu<bildirim>oluştur<tarih>"+formattedDate));
                                                         }
                                                     }
                                                 }

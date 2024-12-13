@@ -42,7 +42,7 @@ public class HomeFragment extends Fragment {
         List<String> notificationList = new ArrayList<>();
 
         if (sharedPreferences.getBoolean("hesap_açık_mı", false)) {
-            yok.setText("Henüz bildirim yok");
+
             db.collection("hesaplar")
                     .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
                     .get()
@@ -63,6 +63,7 @@ public class HomeFragment extends Fragment {
                                 HomeAdapter adapter = new HomeAdapter(requireContext(), notificationList);
                                 listView.setAdapter(adapter);
                             }
+                            yok.setText("Henüz bildirim yok");
                         }
                     });
         } else {

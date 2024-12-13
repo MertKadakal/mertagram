@@ -7,12 +7,14 @@
     >
 
     <TextView
-        android:id="@+id/text_view"
-        android:layout_width="wrap_content"
+        android:id="@+id/item_başlık"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Item Name"
         android:textColor="@color/black"
-        android:textSize="16sp" />
+        android:gravity="center"
+        android:textSize="20dp"
+        android:text="TextView"
+        android:paddingBottom="10dp"/>
 
     <ImageView
         android:id="@+id/image_view"
@@ -20,6 +22,14 @@
         android:layout_height="wrap_content"
         android:layout_marginEnd="8dp"
         android:src="@drawable/ic_launcher_foreground" />
+
+    <TextView
+        android:id="@+id/text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Item Name"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
 
     <LinearLayout
         android:layout_width="match_parent"

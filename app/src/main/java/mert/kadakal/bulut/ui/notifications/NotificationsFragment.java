@@ -1,6 +1,7 @@
 package mert.kadakal.bulut.ui.notifications;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -90,6 +91,7 @@ public class NotificationsFragment extends Fragment {
         Button btn_hesabı_sil = root.findViewById(R.id.hesabı_sil);
         Button btn_pp_değiştir = root.findViewById(R.id.pp_değiştir);
         Button btn_pp_sil = root.findViewById(R.id.pp_sil);
+        Button btn_isim_değiştir = root.findViewById(R.id.ismi_değiştir);
         TextView isim = root.findViewById(R.id.isim);
         pp = root.findViewById(R.id.profil_resmi);
         başlık = root.findViewById(R.id.başlık);
@@ -239,10 +241,54 @@ public class NotificationsFragment extends Fragment {
                     });
         });
 
+        btn_isim_değiştir.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText editText = new EditText(getContext());
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+                builder.setTitle("Yeni ismi giriniz")
+                        .setView(editText)
+                        .setPositiveButton("Tamam", (dialog, which) -> {
+                            String value = editText.getText().toString();
+
+                            db.collection("hesaplar")
+                                    .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                                    .get()
+                                    .addOnCompleteListener(task2 -> {
+                                        if (task2.isSuccessful()) {
+                                            if (!task2.getResult().isEmpty()) {
+                                                for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                    // "bildirimler" alanına yeni eleman ekle
+                                                    db.collection("hesaplar")
+                                                            .document(document2.getId())
+                                                            .update("isim", value);
+
+                                                    String eski = sharedPreferences.getString("hesap_ismi", "");
+                                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                                    editor.putString("hesap_ismi", value);
+                                                    editor.apply();
+
+                                                    Toast.makeText(getContext(), "Kullanıcı ismi değiştirildi", Toast.LENGTH_SHORT).show();
+                                                    bildirim_ekle(value, "Kullanıcı ismi değiştirildi:<br><br><b>"+eski+"<br>↓<br>"+value+"</b><bildirim>pp");
+                                                }
+                                            }
+                                        }
+                                    });
+                        })
+                        .setNegativeButton("İptal", (dialog, which) -> dialog.dismiss());
+
+                builder.show();
+            }
+        });
+
         return root;
     }
 
     private void bildirim_ekle(String hesap, String bildirim) {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
+        Date specificDate = new Date();  // Örnek tarih, kendi tarihini burada belirleyebilirsin.
+        String formattedDate = dateFormat.format(specificDate);
         db.collection("hesaplar")
                 .whereEqualTo("isim", hesap)
                 .get()
@@ -253,7 +299,7 @@ public class NotificationsFragment extends Fragment {
                                 // "bildirimler" alanına yeni eleman ekle
                                 db.collection("hesaplar")
                                         .document(document2.getId())
-                                        .update("bildirimler", FieldValue.arrayUnion(bildirim));
+                                        .update("bildirimler", FieldValue.arrayUnion(bildirim + "<tarih>" + formattedDate));
                             }
                         }
                     }
