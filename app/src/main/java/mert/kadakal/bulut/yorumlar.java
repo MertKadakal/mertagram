@@ -1,8 +1,10 @@
 package mert.kadakal.bulut;
 
 import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Html;
 import android.view.View;
@@ -67,12 +69,12 @@ public class yorumlar extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 EditText editText = new EditText(view.getContext());
+                editText.setPadding(30, 150, 30, 25);
 
                 String link = getIntent().getStringExtra("görsel_link");
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
-                builder.setTitle("Yorumunuzu giriniz")
-                        .setView(editText)
+                builder.setView(editText)
                         .setPositiveButton("Ekle", (dialog, which) -> {
                             String value = editText.getText().toString();
 
@@ -131,7 +133,15 @@ public class yorumlar extends AppCompatActivity {
                                     });
                         })
                         .setNegativeButton("İptal", (dialog, which) -> dialog.dismiss());
-                builder.show();
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
+
+                Button positiveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+                Button negativeButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+
+                positiveButton.setTextColor(Color.WHITE);
+                negativeButton.setTextColor(Color.WHITE);
             }
         });
     }

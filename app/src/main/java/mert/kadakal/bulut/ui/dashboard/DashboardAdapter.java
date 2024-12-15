@@ -73,6 +73,7 @@ public class DashboardAdapter extends BaseAdapter {
         ImageView imageView = convertView.findViewById(R.id.image_view);
         TextView textView = convertView.findViewById(R.id.text_view);
         TextView başlık = convertView.findViewById(R.id.item_başlık);
+        TextView açıklama = convertView.findViewById(R.id.item_açıklama);
         DashboardItem item = items.get(position);
 
         if (!(sharedPreferences.getBoolean("hesap_açık_mı",false))) {
@@ -117,7 +118,7 @@ public class DashboardAdapter extends BaseAdapter {
                                         .update("beğenenler", FieldValue.arrayRemove(sharedPreferences.getString("hesap_ismi", "")));
 
                                 btn_beğen.setText("\uD83D\uDC4D");
-                                textView.setText(Html.fromHtml(String.format("<br><b>Yükleyen:</b> %s<br>%s<br><b>%d</b> beğeni<br>", item.getHesap(), item.getTarih(), item.getBeğeni_sayısı())));
+                                textView.setText(Html.fromHtml(String.format("<br><br>%s - <b>%d</b> beğeni<br>", item.getTarih(), item.getBeğeni_sayısı())));
 
                             } else { //beğen
 
@@ -163,7 +164,7 @@ public class DashboardAdapter extends BaseAdapter {
                                         });
 
                                 btn_beğen.setText("\uD83D\uDC4E");
-                                textView.setText(Html.fromHtml(String.format("<br><b>Yükleyen:</b> %s<br>%s<br><b>%d</b> beğeni<br>", item.getHesap(), item.getTarih(), item.getBeğeni_sayısı()+1)));
+                                textView.setText(Html.fromHtml(String.format("<br><br>%s - <b>%d</b> beğeni<br>", item.getTarih(), item.getBeğeni_sayısı()+1)));
                             }
                         }
                     }
@@ -209,12 +210,13 @@ public class DashboardAdapter extends BaseAdapter {
                 .load(item.getLink())
                 .into(imageView);
 
-        textView.setText(Html.fromHtml(String.format("<br><b>Yükleyen:</b> %s<br>%s<br><b>%d</b> beğeni<br>", item.getHesap(), item.getTarih(), item.getBeğeni_sayısı())));
+        textView.setText(Html.fromHtml(String.format("<br><br>%s - <b>%d</b> beğeni<br>", item.getTarih(), item.getBeğeni_sayısı())));
 
         db.collection("görseller").whereEqualTo("link", item.getLink()).get().addOnCompleteListener(task -> {
             if (task.isSuccessful() && !task.getResult().isEmpty()) {
                 for (DocumentSnapshot document : task.getResult()) {
                     başlık.setText(Html.fromHtml("<b>"+ document.get("başlık")  +"</b>"));
+                    açıklama.setText(Html.fromHtml("<b>"+item.getHesap()+"</b>  " + document.get("açıklama")));
                 }
             }
         });

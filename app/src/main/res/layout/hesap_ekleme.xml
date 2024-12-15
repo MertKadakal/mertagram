@@ -3,7 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/simple_background">
 
     <Button
         android:id="@+id/hesap_ekle_button"
@@ -16,17 +17,20 @@
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextParola"
-        app:layout_constraintVertical_bias="0.91" />
+        app:layout_constraintVertical_bias="0.041" />
 
     <EditText
         android:id="@+id/editTextİsim"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="252dp"
+        android:layout_marginTop="120dp"
         android:ems="10"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
         android:hint="Kulanıcı adınız"
         android:inputType="text"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -34,11 +38,29 @@
         android:id="@+id/editTextParola"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="44dp"
+        android:layout_marginTop="16dp"
         android:ems="10"
         android:hint="Parola"
         android:inputType="text"
+        android:textColor="@color/black"
+        android:textColorHint="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.502"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/editTextİsim" />
+
+    <TextView
+        android:id="@+id/uyarılar"
+        android:layout_width="250dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="→ Daha önce kullanılan bir kullanıcı ismi kullanılamaz
+
+\n→ Kullanıcı ismi en az 4, parola en az 6 karakter içermeli"
+        android:textColor="@color/black"
+        android:textSize="20dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.496"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/hesap_ekle_button" />
 </androidx.constraintlayout.widget.ConstraintLayout>

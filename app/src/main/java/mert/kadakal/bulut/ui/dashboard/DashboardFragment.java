@@ -5,6 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -13,6 +14,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import org.checkerframework.checker.i18nformatter.qual.I18nMakeFormat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,11 +29,13 @@ public class DashboardFragment extends Fragment {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private List<DashboardItem> items = new ArrayList<>();
     private DashboardAdapter adapter;
+    private TextView post_yok;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
         DashboardViewModel dashboardViewModel =
                 new ViewModelProvider(this).get(DashboardViewModel.class);
+
 
         binding = FragmentDashboardBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
@@ -39,6 +44,7 @@ public class DashboardFragment extends Fragment {
         ListView listView = binding.listDashboard;
         adapter = new DashboardAdapter(getContext(), items);
 
+        post_yok = root.findViewById(R.id.post_yok);
 
         // Firestore'dan verileri çek ve listeye ekle
         loadItemsFromFirestore();
@@ -52,6 +58,8 @@ public class DashboardFragment extends Fragment {
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
                     items.clear();  // Eski verileri temizle
+                    if (queryDocumentSnapshots.size() == 1) post_yok.setVisibility(View.VISIBLE);
+
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                         String hesap = document.getString("hesap");
                         String link = document.getString("link");

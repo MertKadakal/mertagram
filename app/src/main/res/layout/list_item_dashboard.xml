@@ -13,7 +13,6 @@
         android:textColor="@color/black"
         android:gravity="center"
         android:textSize="20dp"
-        android:text="TextView"
         android:paddingBottom="10dp"/>
 
     <ImageView
@@ -24,10 +23,18 @@
         android:src="@drawable/ic_launcher_foreground" />
 
     <TextView
+        android:id="@+id/item_açıklama"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="left"
+        android:paddingTop="10dp"
+        android:textColor="@color/black"
+        android:textSize="20dp" />
+
+    <TextView
         android:id="@+id/text_view"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Item Name"
         android:textColor="@color/black"
         android:textSize="16sp" />
 

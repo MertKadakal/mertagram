@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -64,10 +65,11 @@ public class NotificationsFragment extends Fragment {
 
     private FragmentNotificationsBinding binding;
     private ImageView pp;
-    private EditText başlık;
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     SharedPreferences sharedPreferences;
     String[] pp_or_post;
+    String tem_başlık;
+    String tem_açıklama;
 
     private static final String CLIENT_ID = "b9aede4074dcb7a"; // Buraya Imgur'dan aldığınız Client-ID'yi koyun
     private static final int PICK_IMAGE_REQUEST = 1; // Dosya seçme için request kodu
@@ -87,14 +89,13 @@ public class NotificationsFragment extends Fragment {
 
         Button btn_hesap_ekle = root.findViewById(R.id.hesap_ekle);
         Button btn_giriş_yap = root.findViewById(R.id.giriş_yap);
-        Button btn_çıkış_yap = root.findViewById(R.id.çıkış_yap);
-        Button btn_hesabı_sil = root.findViewById(R.id.hesabı_sil);
+        ImageView btn_çıkış_yap = root.findViewById(R.id.çıkış_yap);
+        ImageView btn_hesabı_sil = root.findViewById(R.id.hesabı_sil);
         Button btn_pp_değiştir = root.findViewById(R.id.pp_değiştir);
         Button btn_pp_sil = root.findViewById(R.id.pp_sil);
         Button btn_isim_değiştir = root.findViewById(R.id.ismi_değiştir);
         TextView isim = root.findViewById(R.id.isim);
         pp = root.findViewById(R.id.profil_resmi);
-        başlık = root.findViewById(R.id.başlık);
 
         if (sharedPreferences.getBoolean("hesap_açık_mı", false)) {
             btn_giriş_yap.setVisibility(View.INVISIBLE);
@@ -123,12 +124,12 @@ public class NotificationsFragment extends Fragment {
         } else {
             btn_çıkış_yap.setVisibility(View.INVISIBLE);
             btn.setVisibility(View.INVISIBLE);
-            başlık.setVisibility(View.INVISIBLE);
             btn_hesabı_sil.setVisibility(View.INVISIBLE);
             btn_pp_değiştir.setVisibility(View.INVISIBLE);
             pp.setVisibility(View.INVISIBLE);
             btn_pp_sil.setVisibility(View.INVISIBLE);
             isim.setVisibility(View.INVISIBLE);
+            btn_isim_değiştir.setVisibility(View.INVISIBLE);
         }
 
         btn_hesap_ekle.setOnClickListener(view -> startActivity(new Intent(getContext(), hesap_ekleme_ekranı.class).putExtra("giriş/ekle", "Oluştur")));
@@ -136,65 +137,90 @@ public class NotificationsFragment extends Fragment {
         btn_hesabı_sil.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //hesabın görsellerini sil
-                db.collection("görseller")
-                        .whereEqualTo("hesap", sharedPreferences.getString("hesap_ismi", ""))
-                        .get()
-                        .addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                if (!task.getResult().isEmpty()) {
-                                    for (DocumentSnapshot document : task.getResult()) {
-                                        db.collection("görseller").document(document.getId()).delete();
+                AlertDialog dialog = new AlertDialog.Builder(getContext())
+                        .setMessage("Hesabı silmek istediğinize emin misiniz?")
+                        .setPositiveButton("Evet", (dialogInterface, which) -> {
+                            //hesabın görsellerini sil
+                            db.collection("görseller")
+                                    .whereEqualTo("hesap", sharedPreferences.getString("hesap_ismi", ""))
+                                    .get()
+                                    .addOnCompleteListener(task -> {
+                                        if (task.isSuccessful()) {
+                                            if (!task.getResult().isEmpty()) {
+                                                for (DocumentSnapshot document : task.getResult()) {
+                                                    db.collection("görseller").document(document.getId()).delete();
+                                                }
+                                            }
+                                        }
+                                    });
+
+                            //hesabın beğendiği görsellerin "beğenenler" arraylerinden hesabı sil
+                            db.collection("görseller").get().addOnCompleteListener(task -> {
+                                if (task.isSuccessful()) {
+                                    if (!task.getResult().isEmpty()) {
+                                        for (DocumentSnapshot document : task.getResult()) {
+                                            db.collection("görseller").document(document.getId())
+                                                    .update("beğenenler", FieldValue.arrayRemove(sharedPreferences.getString("hesap_ismi", "")));
+                                            db.collection("görseller").document(document.getId())
+                                                    .update("beğeni", FieldValue.increment(-1));
+                                        }
                                     }
                                 }
-                            }
-                        });
+                            });
 
-                //hesabın beğendiği görsellerin "beğenenler" arraylerinden hesabı sil
-                db.collection("görseller").get().addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        if (!task.getResult().isEmpty()) {
-                            for (DocumentSnapshot document : task.getResult()) {
-                                db.collection("görseller").document(document.getId())
-                                        .update("beğenenler", FieldValue.arrayRemove(sharedPreferences.getString("hesap_ismi", "")));
-                                db.collection("görseller").document(document.getId())
-                                        .update("beğeni", FieldValue.increment(-1));
-                            }
-                        }
-                    }
-                });
+                            //hesabı sil
+                            db.collection("hesaplar")
+                                    .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                                    .get()
+                                    .addOnCompleteListener(task -> {
+                                        if (task.isSuccessful()) {
+                                            if (!task.getResult().isEmpty()) {
+                                                for (DocumentSnapshot document : task.getResult()) {
+                                                    db.collection("hesaplar").document(document.getId()).delete();
 
-                //hesabı sil
-                db.collection("hesaplar")
-                        .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
-                        .get()
-                        .addOnCompleteListener(task -> {
-                            if (task.isSuccessful()) {
-                                if (!task.getResult().isEmpty()) {
-                                    for (DocumentSnapshot document : task.getResult()) {
-                                        db.collection("hesaplar").document(document.getId()).delete();
+                                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                                    editor.putBoolean("hesap_açık_mı", false);
+                                                    editor.apply();
 
-                                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                                        editor.putBoolean("hesap_açık_mı", false);
-                                        editor.apply();
+                                                    Toast.makeText(getContext(), "Hesap silindi", Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        }
+                                    });
+                        })
+                        .setNegativeButton("Hayır", (dialogInterface, which) -> {
+                            // Hayır seçildiğinde sadece pop-up kapanır
+                            dialogInterface.dismiss();
+                        })
+                        .show();
 
-                                        Toast.makeText(getContext(), "Hesap silindi", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                            }
-                        });
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.WHITE);
+                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.WHITE);
             }
         });
 
         btn_çıkış_yap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Hesaptan çıkış yapıldı<bildirim>çıkış");
+                AlertDialog dialog = new AlertDialog.Builder(getContext())
+                        .setMessage("Hesaptan çıkış yapmak istediğinize emin misiniz?")
+                        .setPositiveButton("Evet", (dialogInterface, which) -> {
+                            // Evet seçildiğinde bu kod çalışır
+                            bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Hesaptan çıkış yapıldı<bildirim>çıkış");
 
-                SharedPreferences.Editor editor = sharedPreferences.edit();
-                editor.putBoolean("hesap_açık_mı", false);
-                editor.apply();
-                Toast.makeText(getContext(), "Hesaptan çıkış yapıldı", Toast.LENGTH_SHORT).show();
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putBoolean("hesap_açık_mı", false);
+                            editor.apply();
+                            Toast.makeText(getContext(), "Hesaptan çıkış yapıldı", Toast.LENGTH_SHORT).show();
+                        })
+                        .setNegativeButton("Hayır", (dialogInterface, which) -> {
+                            // Hayır seçildiğinde sadece pop-up kapanır
+                            dialogInterface.dismiss();
+                        })
+                        .show();
+
+                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.WHITE);
+                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.WHITE);
             }
         });
 
@@ -209,36 +235,47 @@ public class NotificationsFragment extends Fragment {
 
         //görsel ekleme
         btn.setOnClickListener(view -> {
-            if (başlık.getText().toString().isEmpty()) {
-                Toast.makeText(getContext(), "Görselin başlığını girin", Toast.LENGTH_SHORT).show();
-            } else {
-                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                pp_or_post[0] = "post";
-                startActivityForResult(intent, PICK_IMAGE_REQUEST);
-            }
+            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            pp_or_post[0] = "post";
+            startActivityForResult(intent, PICK_IMAGE_REQUEST);
         });
 
         //pp sil
         btn_pp_sil.setOnClickListener(view -> {
-            db.collection("hesaplar")
-                    .get().addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                if (document.getString("isim").equals(sharedPreferences.getString("hesap_ismi", ""))) {
-                                    Map<String, Object> updatedField = new HashMap<>();
-                                    updatedField.put("pp_link", "");
 
-                                    db.collection("hesaplar").document(document.getId())
-                                            .update(updatedField);
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    .setMessage("Profil resminizi silmek istediğinize emin misiniz?")
+                    .setPositiveButton("Evet", (dialogInterface, which) -> {
+                        db.collection("hesaplar")
+                                .get().addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        for (QueryDocumentSnapshot document : task.getResult()) {
+                                            if (document.getString("isim").equals(sharedPreferences.getString("hesap_ismi", ""))) {
+                                                Map<String, Object> updatedField = new HashMap<>();
+                                                updatedField.put("pp_link", "");
 
-                                    Toast.makeText(getContext(), "Profil resmi silindi", Toast.LENGTH_SHORT).show();
+                                                db.collection("hesaplar").document(document.getId())
+                                                        .update(updatedField);
 
-                                    String görsel_sahibi = document.getString("hesap");
-                                    bildirim_ekle(görsel_sahibi, "Profil resmi silindi<br>pp");
-                                }
-                            }
-                        }
-                    });
+                                                Toast.makeText(getContext(), "Profil resmi silindi", Toast.LENGTH_SHORT).show();
+
+                                                String görsel_sahibi = document.getString("hesap");
+                                                bildirim_ekle(görsel_sahibi, "Profil resmi silindi<br>pp");
+                                            }
+                                        }
+                                    }
+                                });
+                    })
+                    .setNegativeButton("Hayır", (dialogInterface, which) -> {
+                        // Hayır seçildiğinde sadece pop-up kapanır
+                        dialogInterface.dismiss();
+                    })
+                    .show();
+
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.WHITE);
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.WHITE);
+
+
         });
 
         btn_isim_değiştir.setOnClickListener(new View.OnClickListener() {
@@ -315,12 +352,70 @@ public class NotificationsFragment extends Fragment {
     // Kullanıcı bir dosya seçtikten sonra bu metod çalışacak
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
-            Uri imageUri = data.getData();
-            File imageFile = new File(getRealPathFromURI(imageUri));
-            uploadImageToImgur(imageFile);
-        }
+
+        // Başlık soran popup
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setTitle("Başlık Girin");
+
+        final EditText input1 = new EditText(getActivity());
+        builder.setView(input1);
+
+        builder.setPositiveButton("Tamam", (dialog, which) -> {
+            tem_başlık = input1.getText().toString();
+
+            if (tem_başlık.isEmpty()) {
+                Toast.makeText(getActivity(), "Başlık boş olamaz", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Açıklama soran popup
+            AlertDialog.Builder secondBuilder = new AlertDialog.Builder(getActivity());
+            secondBuilder.setTitle("Açıklama Girin (Opsiyonel)");
+
+            final EditText input2 = new EditText(getActivity());
+            secondBuilder.setView(input2);
+
+            secondBuilder.setPositiveButton("Tamam", (secondDialog, secondWhich) -> {
+                tem_açıklama = input2.getText().toString();
+
+                // Örnek: Imgur'a yükleme işlemi
+                super.onActivityResult(requestCode, resultCode, data);
+                if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+                    Uri imageUri = data.getData();
+                    File imageFile = new File(getRealPathFromURI(imageUri));
+                    uploadImageToImgur(imageFile);
+                }
+            });
+
+            secondBuilder.setNegativeButton("İptal", (secondDialog, secondWhich) -> secondDialog.dismiss());
+
+            // İkinci popup gösterildikten sonra butonları beyaz yapalım
+            AlertDialog secondDialog = secondBuilder.create();
+            secondDialog.setOnShowListener(dialogInterface -> {
+                Button positiveButton = secondDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button negativeButton = secondDialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+
+                if (positiveButton != null) positiveButton.setTextColor(Color.WHITE);
+                if (negativeButton != null) negativeButton.setTextColor(Color.WHITE);
+            });
+
+            secondDialog.show();
+        });
+
+        builder.setNegativeButton("İptal", (dialog, which) -> dialog.dismiss());
+
+// İlk popup gösterildikten sonra butonları beyaz yapalım
+        AlertDialog dialog = builder.create();
+        dialog.setOnShowListener(dialogInterface -> {
+            Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+
+            if (positiveButton != null) positiveButton.setTextColor(Color.WHITE);
+            if (negativeButton != null) negativeButton.setTextColor(Color.WHITE);
+        });
+
+        dialog.show();
+
     }
 
     // Uri'yi gerçek dosya yoluna çevirme
@@ -338,8 +433,6 @@ public class NotificationsFragment extends Fragment {
     private void uploadImageToImgur(File file) {
         OkHttpClient client = new OkHttpClient();
         Toast.makeText(getContext(), "Yükleniyor...", Toast.LENGTH_SHORT).show();
-        String tem_başlık = başlık.getText().toString();
-        başlık.getText().clear();
         // Görseli yüklemek için Multipart Form-data hazırlıyoruz
         RequestBody requestBody = new MultipartBody.Builder()
                 .setType(MultipartBody.FORM)
@@ -375,8 +468,6 @@ public class NotificationsFragment extends Fragment {
 
                     //pp değiştir veya post yükle
                     if (pp_or_post[0].equals("post")) {
-                        // Belirli bir tarih oluşturma: 2 Aralık 2024, 10:30
-
                         SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
                         Date specificDate = new Date();  // Örnek tarih, kendi tarihini burada belirleyebilirsin.
                         String formattedDate = dateFormat.format(specificDate);
@@ -387,6 +478,7 @@ public class NotificationsFragment extends Fragment {
                         imageDb.put("tarih", formattedDate);
                         imageDb.put("beğeni", 0);
                         imageDb.put("başlık", tem_başlık);
+                        imageDb.put("açıklama", tem_açıklama);
                         imageDb.put("yorumlar", new ArrayList<>());
 
                         db.collection("görseller").add(imageDb);

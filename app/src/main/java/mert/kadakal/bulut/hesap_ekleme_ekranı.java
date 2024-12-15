@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -24,6 +25,7 @@ public class hesap_ekleme_ekranı extends AppCompatActivity {
     private EditText isim;
     private EditText parola;
     private Button btn_ekle;
+    private TextView uyarılar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,17 +41,37 @@ public class hesap_ekleme_ekranı extends AppCompatActivity {
         isim = findViewById(R.id.editTextİsim);
         parola = findViewById(R.id.editTextParola);
         btn_ekle = findViewById(R.id.hesap_ekle_button);
+        uyarılar = findViewById(R.id.uyarılar);
         btn_ekle.setText(getIntent().getStringExtra("giriş/ekle"));
 
+        if (getIntent().getStringExtra("giriş/ekle").equals("Giriş Yap")) {
+            uyarılar.setVisibility(View.INVISIBLE);
+        }
+
         btn_ekle.setOnClickListener(view -> {
+            if (isim.getText().toString().isEmpty()  || parola.getText().toString().isEmpty()) {
+                Toast.makeText(this, "Boş bırakılan alan", Toast.LENGTH_SHORT).show();
+                return;
+            }
             if (getIntent().getStringExtra("giriş/ekle").equals("Giriş Yap")) {
+                if (isim.getText().length() < 4 || parola.getText().length() < 6) {
+                    Toast.makeText(hesap_ekleme_ekranı.this, "Yetersiz karakter sayısı", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
                 db.collection("hesaplar")
                         .get().addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 boolean isim_kontrol = false;
                                 String tem_parola = "";
+
+                                if (task.getResult().size() == 1) {
+                                    Toast.makeText(hesap_ekleme_ekranı.this, "Hesap bulunamadı", Toast.LENGTH_SHORT).show();
+                                    return;
+                                }
+
                                 for (QueryDocumentSnapshot document : task.getResult()) {
-                                    if (document.getString("isim").equals(isim.getText().toString())) {
+                                    if (document.getString("isim") != null && document.getString("isim").equals(isim.getText().toString())) {
                                         isim_kontrol = true;
                                         tem_parola = document.getString("parola");
                                     }
@@ -96,16 +118,25 @@ public class hesap_ekleme_ekranı extends AppCompatActivity {
                         .get().addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 boolean isim_kontrol = false;
-                                for (QueryDocumentSnapshot document : task.getResult()) {
-                                    if (document.getString("isim").equals(isim.getText().toString())) {
-                                        isim_kontrol = true;
+                                if (task.getResult().size() > 1) {
+                                    for (QueryDocumentSnapshot document : task.getResult()) {
+                                        if (document.getString("isim") != null && document.getString("isim").equals(isim.getText().toString())) {
+                                            isim_kontrol = true;
+                                        }
                                     }
                                 }
+
                                 if (isim_kontrol) {
                                     Toast.makeText(hesap_ekleme_ekranı.this, "Bu isim kullanılıyor", Toast.LENGTH_SHORT).show();
                                     isim.getText().clear();
                                     parola.getText().clear();
                                 } else {
+                                    if (isim.getText().length() < 4 || parola.getText().length() < 6) {
+                                        Toast.makeText(hesap_ekleme_ekranı.this, "Yetersiz karakter sayısı", Toast.LENGTH_SHORT).show();
+                                        isim.getText().clear();
+                                        parola.getText().clear();
+                                        return;
+                                    }
                                     Map<String, Object> eklenen_hesap = new HashMap<>();
                                     eklenen_hesap.put("isim", isim.getText().toString());
                                     eklenen_hesap.put("parola", parola.getText().toString());

@@ -34,36 +34,37 @@
         app:layout_constraintTop_toBottomOf="@+id/hesap_ekle"
         app:layout_constraintVertical_bias="0.081" />
 
-    <Button
+    <ImageView
         android:id="@+id/çıkış_yap"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
+        android:layout_width="45dp"
+        android:layout_height="50dp"
         android:layout_marginTop="16dp"
-        android:background="@drawable/button_background"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/logout"
         android:text="Çıkış"
-        app:layout_constraintStart_toEndOf="@+id/hesabı_sil"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/ismi_değiştir"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="36dp"
         android:background="@drawable/button_background"
         android:text="İsim değiştir"
-        app:layout_constraintStart_toEndOf="@+id/çıkış_yap"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/foto_ekle" />
 
-    <Button
+    <ImageView
         android:id="@+id/hesabı_sil"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="32dp"
         android:layout_marginTop="16dp"
-        android:background="@drawable/button_background"
-        android:text="Hesabı Sil"
+        android:background="@drawable/remove"
+        android:scaleType="fitCenter"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -71,11 +72,10 @@
         android:id="@+id/foto_ekle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="440dp"
+        android:layout_marginTop="336dp"
         android:background="@drawable/button_background"
-        android:text="Dosya yükle"
+        android:text="Dosya seç"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -83,9 +83,9 @@
         android:id="@+id/profil_resmi"
         android:layout_width="310dp"
         android:layout_height="140dp"
-        android:layout_marginTop="112dp"
+        android:layout_marginTop="100dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintHorizontal_bias="0.495"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -93,12 +93,13 @@
         android:id="@+id/pp_değiştir"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
-        android:layout_marginBottom="92dp"
+        android:layout_marginTop="36dp"
         android:background="@drawable/button_background"
-        android:text="Değiştir"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:text="PP Değiştir"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ismi_değiştir" />
 
     <TextView
         android:id="@+id/isim"
@@ -118,26 +119,13 @@
         android:id="@+id/pp_sil"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="40dp"
-        android:layout_marginBottom="92dp"
+        android:layout_marginTop="36dp"
         android:background="@drawable/button_background"
         android:text="Kaldır"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <EditText
-        android:id="@+id/başlık"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:ems="10"
-        android:inputType="text"
-        android:hint="Başlık"
-        android:backgroundTint="@color/black"
-        android:textColorHint="@color/black"
-        android:textColor="@color/black"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/foto_ekle" />
+        app:layout_constraintTop_toBottomOf="@+id/pp_değiştir" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>
