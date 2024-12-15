@@ -1,5 +1,6 @@
 package mert.kadakal.bulut;
 
+import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.media.Image;
@@ -10,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -32,7 +34,9 @@ public class YorumlarAdapter extends BaseAdapter {
     FirebaseFirestore db = FirebaseFirestore.getInstance();
     SharedPreferences sharedPreferences;
     private TextView yorum_içerigi;
+    private TextView yorum_tarihi;
     private ImageView yorumu_sil;
+    private ImageView yorumu_düzenle;
     private String link;
 
     public YorumlarAdapter(Context context, List<String> items, String link) {
@@ -66,15 +70,20 @@ public class YorumlarAdapter extends BaseAdapter {
         String item = items.get(position);
 
         yorumu_sil = convertView.findViewById(R.id.yorumu_sil);
+        yorumu_düzenle = convertView.findViewById(R.id.yorumu_düzenle);
         if (!(sharedPreferences.getBoolean("hesap_açık_mı", false) && sharedPreferences.getString("hesap_ismi", "").equals(item.split("<br>")[0]))) {
             yorumu_sil.setVisibility(View.INVISIBLE);
+            yorumu_düzenle.setVisibility(View.INVISIBLE);
         }
 
         String yorum_içeriği_str = item;
         String yorumcu = item.split("<br><br>")[0];
         String yorum = item.split("<br><br>")[1];
+        String tarih = item.split("<br><br>")[2];
         yorum_içerigi = convertView.findViewById(R.id.yorum_içeriği);
         yorum_içerigi.setText(Html.fromHtml("<b>" + yorumcu + "</b><br><br>'" + yorum + "'"));
+        yorum_tarihi = convertView.findViewById(R.id.yorum_tarihi);
+        yorum_tarihi.setText(Html.fromHtml("<i>"+tarih+"</i>"));
 
         yorumu_sil.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,7 +124,7 @@ public class YorumlarAdapter extends BaseAdapter {
                                                             }
                                                         });
 
-                                                return;
+                                                Toast.makeText(context, "Yorumunuz silindi", Toast.LENGTH_SHORT).show();
                                             }
                                         }
                                     }
@@ -124,6 +133,68 @@ public class YorumlarAdapter extends BaseAdapter {
                         });
             }
 
+        });
+
+        yorumu_düzenle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                EditText editText = new EditText(view.getContext());
+                editText.setText(yorum);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+                builder.setTitle("Yeni yorumu giriniz")
+                        .setView(editText)
+                        .setPositiveButton("Düzenle", (dialog, which) -> {
+                            String value = editText.getText().toString();
+
+                            db.collection("görseller").whereEqualTo("link", link).get()
+                                    .addOnCompleteListener(task -> {
+                                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                                            for (DocumentSnapshot document : task.getResult()) {
+                                                List<String> yorumlarList = (List<String>) document.get("yorumlar");
+
+                                                if (yorumlarList != null) {
+                                                    for (int i = 0; i < yorumlarList.size(); i++) {
+                                                        if (yorumlarList.get(i).equals(yorum_içeriği_str)) {
+                                                            String eski = yorumlarList.get(i).split("<br><br>")[1];
+                                                            yorumlarList.set(i, sharedPreferences.getString("hesap_ismi","") + "<br><br>" + value + "<br><br>" + tarih);
+
+                                                            String görsel_başlığı = document.getString("başlık");
+                                                            SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
+                                                            Date specificDate = new Date();  // Örnek tarih, kendi tarihini burada belirleyebilirsin.
+                                                            String formattedDate = dateFormat.format(specificDate);
+
+                                                            db.collection("hesaplar")
+                                                                    .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi",""))
+                                                                    .get()
+                                                                    .addOnCompleteListener(task2 -> {
+                                                                        if (task2.isSuccessful()) {
+                                                                            if (!task2.getResult().isEmpty()) {
+                                                                                for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                                                    // "bildirimler" alanına yeni eleman ekle
+                                                                                    db.collection("hesaplar")
+                                                                                            .document(document2.getId())
+                                                                                            .update("bildirimler", FieldValue.arrayUnion("<b>"+ görsel_başlığı +"</b> adlı görsele yaptığınız yorumu düzenlediniz:<br><br><i>" + eski + "</i><br>↓<br><i>" + value + "</i><bildirim>yeni yorum<tarih>"+formattedDate));
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    });
+
+                                                            db.collection("görseller")
+                                                                    .document(document.getId())
+                                                                    .update("yorumlar", yorumlarList);
+
+                                                            Toast.makeText(context, "Yorumunuz güncellendi", Toast.LENGTH_SHORT).show();
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    });
+                        })
+                        .setNegativeButton("İptal", (dialog, which) -> dialog.dismiss());
+                builder.show();
+            }
         });
 
         return convertView;

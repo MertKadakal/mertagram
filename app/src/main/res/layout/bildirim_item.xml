@@ -5,7 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="horizontal"
-    android:padding="8dp">
+    android:padding="8dp"
+    android:showDividers="middle"
+    android:divider="@color/black">
 
     <ImageView
         android:id="@+id/bildirim_görsel"
@@ -19,7 +21,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:layout_gravity="center">
+        android:layout_gravity="center"
+        android:paddingLeft="10dp">
 
         <TextView
             android:id="@+id/item_title"

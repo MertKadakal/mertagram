@@ -54,7 +54,7 @@ public class HomeAdapter extends BaseAdapter {
         TextView tarih = convertView.findViewById(R.id.item_date);
         bildirim_gorsel = convertView.findViewById(R.id.bildirim_görsel);
         title.setText(Html.fromHtml(notifications.get(position).split("<bildirim>")[0]));
-        tarih.setText(Html.fromHtml(notifications.get(position).split("<tarih>")[1]));
+        tarih.setText(Html.fromHtml("<br>"+notifications.get(position).split("<tarih>")[1]));
 
         //bildirim görselini ayarla
         switch (notifications.get(position).split("<bildirim>")[1].split("<tarih>")[0]) {
