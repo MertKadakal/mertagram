@@ -353,69 +353,77 @@ public class NotificationsFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        // Başlık soran popup
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("Başlık Girin");
-
-        final EditText input1 = new EditText(getActivity());
-        builder.setView(input1);
-
-        builder.setPositiveButton("Tamam", (dialog, which) -> {
-            tem_başlık = input1.getText().toString();
-
-            if (tem_başlık.isEmpty()) {
-                Toast.makeText(getActivity(), "Başlık boş olamaz", Toast.LENGTH_SHORT).show();
-                return;
+        if (pp_or_post[0] == "pp") {
+            // Örnek: Imgur'a yükleme işlemi
+            super.onActivityResult(requestCode, resultCode, data);
+            if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+                Uri imageUri = data.getData();
+                File imageFile = new File(getRealPathFromURI(imageUri));
+                uploadImageToImgur(imageFile);
             }
+        } else {
+            // Başlık soran popup
+            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+            builder.setTitle("Başlık Girin");
 
-            // Açıklama soran popup
-            AlertDialog.Builder secondBuilder = new AlertDialog.Builder(getActivity());
-            secondBuilder.setTitle("Açıklama Girin (Opsiyonel)");
+            final EditText input1 = new EditText(getActivity());
+            builder.setView(input1);
 
-            final EditText input2 = new EditText(getActivity());
-            secondBuilder.setView(input2);
+            builder.setPositiveButton("Tamam", (dialog, which) -> {
+                tem_başlık = input1.getText().toString();
 
-            secondBuilder.setPositiveButton("Tamam", (secondDialog, secondWhich) -> {
-                tem_açıklama = input2.getText().toString();
-
-                // Örnek: Imgur'a yükleme işlemi
-                super.onActivityResult(requestCode, resultCode, data);
-                if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
-                    Uri imageUri = data.getData();
-                    File imageFile = new File(getRealPathFromURI(imageUri));
-                    uploadImageToImgur(imageFile);
+                if (tem_başlık.isEmpty()) {
+                    Toast.makeText(getActivity(), "Başlık boş olamaz", Toast.LENGTH_SHORT).show();
+                    return;
                 }
+
+                // Açıklama soran popup
+                AlertDialog.Builder secondBuilder = new AlertDialog.Builder(getActivity());
+                secondBuilder.setTitle("Açıklama Girin (Opsiyonel)");
+
+                final EditText input2 = new EditText(getActivity());
+                secondBuilder.setView(input2);
+
+                secondBuilder.setPositiveButton("Tamam", (secondDialog, secondWhich) -> {
+                    tem_açıklama = input2.getText().toString();
+
+                    // Örnek: Imgur'a yükleme işlemi
+                    super.onActivityResult(requestCode, resultCode, data);
+                    if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null) {
+                        Uri imageUri = data.getData();
+                        File imageFile = new File(getRealPathFromURI(imageUri));
+                        uploadImageToImgur(imageFile);
+                    }
+                });
+
+                secondBuilder.setNegativeButton("İptal", (secondDialog, secondWhich) -> secondDialog.dismiss());
+
+                // İkinci popup gösterildikten sonra butonları beyaz yapalım
+                AlertDialog secondDialog = secondBuilder.create();
+                secondDialog.setOnShowListener(dialogInterface -> {
+                    Button positiveButton = secondDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                    Button negativeButton = secondDialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+
+                    if (positiveButton != null) positiveButton.setTextColor(Color.WHITE);
+                    if (negativeButton != null) negativeButton.setTextColor(Color.WHITE);
+                });
+
+                secondDialog.show();
             });
 
-            secondBuilder.setNegativeButton("İptal", (secondDialog, secondWhich) -> secondDialog.dismiss());
+            builder.setNegativeButton("İptal", (dialog, which) -> dialog.dismiss());
 
-            // İkinci popup gösterildikten sonra butonları beyaz yapalım
-            AlertDialog secondDialog = secondBuilder.create();
-            secondDialog.setOnShowListener(dialogInterface -> {
-                Button positiveButton = secondDialog.getButton(AlertDialog.BUTTON_POSITIVE);
-                Button negativeButton = secondDialog.getButton(AlertDialog.BUTTON_NEGATIVE);
+            AlertDialog dialog = builder.create();
+            dialog.setOnShowListener(dialogInterface -> {
+                Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
 
                 if (positiveButton != null) positiveButton.setTextColor(Color.WHITE);
                 if (negativeButton != null) negativeButton.setTextColor(Color.WHITE);
             });
 
-            secondDialog.show();
-        });
-
-        builder.setNegativeButton("İptal", (dialog, which) -> dialog.dismiss());
-
-// İlk popup gösterildikten sonra butonları beyaz yapalım
-        AlertDialog dialog = builder.create();
-        dialog.setOnShowListener(dialogInterface -> {
-            Button positiveButton = dialog.getButton(AlertDialog.BUTTON_POSITIVE);
-            Button negativeButton = dialog.getButton(AlertDialog.BUTTON_NEGATIVE);
-
-            if (positiveButton != null) positiveButton.setTextColor(Color.WHITE);
-            if (negativeButton != null) negativeButton.setTextColor(Color.WHITE);
-        });
-
-        dialog.show();
-
+            dialog.show();
+        }
     }
 
     // Uri'yi gerçek dosya yoluna çevirme
@@ -488,8 +496,9 @@ public class NotificationsFragment extends Fragment {
                         db.collection("hesaplar")
                                 .get().addOnCompleteListener(task -> {
                                     if (task.isSuccessful()) {
+                                        if (task.getResult().size() == 1) return;
                                         for (QueryDocumentSnapshot document : task.getResult()) {
-                                            if (document.getString("isim").equals(sharedPreferences.getString("hesap_ismi", ""))) {
+                                            if (document.getString("isim") != null && document.getString("isim").equals(sharedPreferences.getString("hesap_ismi", ""))) {
                                                 Map<String, Object> updatedField = new HashMap<>();
                                                 updatedField.put("pp_link", imageUrl);
 
