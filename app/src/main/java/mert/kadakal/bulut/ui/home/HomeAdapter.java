@@ -50,6 +50,7 @@ public class HomeAdapter extends BaseAdapter {
         }
 
         // TextView'i bul ve bildirimi ayarla
+        Log.d("aa", notifications.get(position));
         TextView title = convertView.findViewById(R.id.item_title);
         TextView tarih = convertView.findViewById(R.id.item_date);
         bildirim_gorsel = convertView.findViewById(R.id.bildirim_görsel);

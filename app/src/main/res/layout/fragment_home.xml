@@ -10,9 +10,9 @@
     <ListView
         android:id="@+id/bildirimler_list"
         android:layout_width="match_parent"
-        android:layout_height="671dp"
-        android:dividerHeight="2dp"
+        android:layout_height="692dp"
         android:divider="@color/black"
+        android:dividerHeight="2dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
