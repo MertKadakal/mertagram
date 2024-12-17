@@ -44,20 +44,16 @@ public class HomeAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        // Eğer convertView yoksa, yeni bir View oluştur
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.bildirim_item, parent, false);
         }
 
-        // TextView'i bul ve bildirimi ayarla
-        Log.d("aa", notifications.get(position));
         TextView title = convertView.findViewById(R.id.item_title);
         TextView tarih = convertView.findViewById(R.id.item_date);
         bildirim_gorsel = convertView.findViewById(R.id.bildirim_görsel);
         title.setText(Html.fromHtml(notifications.get(position).split("<bildirim>")[0]));
         tarih.setText(Html.fromHtml("<br>"+notifications.get(position).split("<tarih>")[1]));
 
-        //bildirim görselini ayarla
         switch (notifications.get(position).split("<bildirim>")[1].split("<tarih>")[0]) {
             case "çıkış":
                 Glide.with(context)

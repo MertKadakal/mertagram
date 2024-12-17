@@ -33,7 +33,7 @@ public class hesap_ekleme_ekranı extends AppCompatActivity {
         setContentView(R.layout.hesap_ekleme);
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
-        Date specificDate = new Date();  // Örnek tarih, kendi tarihini burada belirleyebilirsin.
+        Date specificDate = new Date();
         String formattedDate = dateFormat.format(specificDate);
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();

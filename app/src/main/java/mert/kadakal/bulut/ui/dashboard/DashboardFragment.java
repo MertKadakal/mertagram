@@ -33,14 +33,10 @@ public class DashboardFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        DashboardViewModel dashboardViewModel =
-                new ViewModelProvider(this).get(DashboardViewModel.class);
-
 
         binding = FragmentDashboardBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
-        // ListView ayarlama
         ListView listView = binding.listDashboard;
         adapter = new DashboardAdapter(getContext(), items);
 
@@ -54,10 +50,10 @@ public class DashboardFragment extends Fragment {
     }
 
     private void loadItemsFromFirestore() {
-        db.collection("görseller")  // Koleksiyon adı
+        db.collection("görseller")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    items.clear();  // Eski verileri temizle
+                    items.clear();
                     if (queryDocumentSnapshots.size() == 1) post_yok.setVisibility(View.VISIBLE);
 
                     for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
@@ -70,7 +66,7 @@ public class DashboardFragment extends Fragment {
                             items.add(new DashboardItem(link, hesap, tarih, beğeni));
                         }
                     }
-                    adapter.notifyDataSetChanged();  // ListView'i güncelle
+                    adapter.notifyDataSetChanged();
                 });
     }
 

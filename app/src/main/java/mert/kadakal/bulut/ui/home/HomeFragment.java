@@ -35,7 +35,6 @@ public class HomeFragment extends Fragment {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_home, container, false);
         sharedPreferences = getContext().getSharedPreferences("myPrefs", Context.MODE_PRIVATE);
-        // ListView'i bul
         ListView listView = rootView.findViewById(R.id.bildirimler_list);
         yok = rootView.findViewById(R.id.bildirim_yok);
 
@@ -49,7 +48,6 @@ public class HomeFragment extends Fragment {
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful() && !task.getResult().isEmpty()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
-                                // "bildirimler" alanını al
                                 List<String> bildirimler = (List<String>) document.get("bildirimler");
                                 if (bildirimler != null) {
                                     Collections.reverse(bildirimler);
@@ -57,7 +55,6 @@ public class HomeFragment extends Fragment {
                                 }
                             }
 
-                            // Adapter'i oluştur ve ListView'e bağla
                             if (notificationList.size() != 0) {
                                 yok.setVisibility(View.INVISIBLE);
                                 HomeAdapter adapter = new HomeAdapter(requireContext(), notificationList);

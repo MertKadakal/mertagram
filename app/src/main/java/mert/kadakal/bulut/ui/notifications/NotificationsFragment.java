@@ -77,8 +77,6 @@ public class NotificationsFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        NotificationsViewModel notificationsViewModel =
-                new ViewModelProvider(this).get(NotificationsViewModel.class);
 
         pp_or_post = new String[]{""};
         binding = FragmentNotificationsBinding.inflate(inflater, container, false);
@@ -134,103 +132,92 @@ public class NotificationsFragment extends Fragment {
 
         btn_hesap_ekle.setOnClickListener(view -> startActivity(new Intent(getContext(), hesap_ekleme_ekranı.class).putExtra("giriş/ekle", "Oluştur")));
         btn_giriş_yap.setOnClickListener(view -> startActivity(new Intent(getContext(), hesap_ekleme_ekranı.class).putExtra("giriş/ekle", "Giriş Yap")));
-        btn_hesabı_sil.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog dialog = new AlertDialog.Builder(getContext())
-                        .setMessage("Hesabı silmek istediğinize emin misiniz?")
-                        .setPositiveButton("Evet", (dialogInterface, which) -> {
-                            //hesabın görsellerini sil
-                            db.collection("görseller")
-                                    .whereEqualTo("hesap", sharedPreferences.getString("hesap_ismi", ""))
-                                    .get()
-                                    .addOnCompleteListener(task -> {
-                                        if (task.isSuccessful()) {
-                                            if (!task.getResult().isEmpty()) {
-                                                for (DocumentSnapshot document : task.getResult()) {
-                                                    db.collection("görseller").document(document.getId()).delete();
-                                                }
+        btn_hesabı_sil.setOnClickListener(view -> {
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    .setMessage("Hesabı silmek istediğinize emin misiniz?")
+                    .setPositiveButton("Evet", (dialogInterface, which) -> {
+                        //hesabın görsellerini sil
+                        db.collection("görseller")
+                                .whereEqualTo("hesap", sharedPreferences.getString("hesap_ismi", ""))
+                                .get()
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        if (!task.getResult().isEmpty()) {
+                                            for (DocumentSnapshot document : task.getResult()) {
+                                                db.collection("görseller").document(document.getId()).delete();
                                             }
-                                        }
-                                    });
-
-                            //hesabın beğendiği görsellerin "beğenenler" arraylerinden hesabı sil
-                            db.collection("görseller").get().addOnCompleteListener(task -> {
-                                if (task.isSuccessful()) {
-                                    if (!task.getResult().isEmpty()) {
-                                        for (DocumentSnapshot document : task.getResult()) {
-                                            db.collection("görseller").document(document.getId())
-                                                    .update("beğenenler", FieldValue.arrayRemove(sharedPreferences.getString("hesap_ismi", "")));
-                                            db.collection("görseller").document(document.getId())
-                                                    .update("beğeni", FieldValue.increment(-1));
                                         }
                                     }
+                                });
+
+                        //hesabın beğendiği görsellerin "beğenenler" arraylerinden hesabı sil
+                        db.collection("görseller").get().addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                if (!task.getResult().isEmpty()) {
+                                    for (DocumentSnapshot document : task.getResult()) {
+                                        db.collection("görseller").document(document.getId())
+                                                .update("beğenenler", FieldValue.arrayRemove(sharedPreferences.getString("hesap_ismi", "")));
+                                        db.collection("görseller").document(document.getId())
+                                                .update("beğeni", FieldValue.increment(-1));
+                                    }
                                 }
-                            });
+                            }
+                        });
 
-                            //hesabı sil
-                            db.collection("hesaplar")
-                                    .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
-                                    .get()
-                                    .addOnCompleteListener(task -> {
-                                        if (task.isSuccessful()) {
-                                            if (!task.getResult().isEmpty()) {
-                                                for (DocumentSnapshot document : task.getResult()) {
-                                                    db.collection("hesaplar").document(document.getId()).delete();
+                        //hesabı sil
+                        db.collection("hesaplar")
+                                .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                                .get()
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful()) {
+                                        if (!task.getResult().isEmpty()) {
+                                            for (DocumentSnapshot document : task.getResult()) {
+                                                db.collection("hesaplar").document(document.getId()).delete();
 
-                                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                                    editor.putBoolean("hesap_açık_mı", false);
-                                                    editor.apply();
+                                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                                editor.putBoolean("hesap_açık_mı", false);
+                                                editor.apply();
 
-                                                    Toast.makeText(getContext(), "Hesap silindi", Toast.LENGTH_SHORT).show();
-                                                }
+                                                Toast.makeText(getContext(), "Hesap silindi", Toast.LENGTH_SHORT).show();
                                             }
                                         }
-                                    });
-                        })
-                        .setNegativeButton("Hayır", (dialogInterface, which) -> {
-                            // Hayır seçildiğinde sadece pop-up kapanır
-                            dialogInterface.dismiss();
-                        })
-                        .show();
+                                    }
+                                });
+                    })
+                    .setNegativeButton("Hayır", (dialogInterface, which) -> {
+                        dialogInterface.dismiss();
+                    })
+                    .show();
 
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.WHITE);
-                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.WHITE);
-            }
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.WHITE);
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.WHITE);
         });
 
-        btn_çıkış_yap.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog dialog = new AlertDialog.Builder(getContext())
-                        .setMessage("Hesaptan çıkış yapmak istediğinize emin misiniz?")
-                        .setPositiveButton("Evet", (dialogInterface, which) -> {
-                            // Evet seçildiğinde bu kod çalışır
-                            bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Hesaptan çıkış yapıldı<bildirim>çıkış");
+        btn_çıkış_yap.setOnClickListener(view -> {
+            AlertDialog dialog = new AlertDialog.Builder(getContext())
+                    .setMessage("Hesaptan çıkış yapmak istediğinize emin misiniz?")
+                    .setPositiveButton("Evet", (dialogInterface, which) -> {
+                        // Evet seçildiğinde bu kod çalışır
+                        bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Hesaptan çıkış yapıldı<bildirim>çıkış");
 
-                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                            editor.putBoolean("hesap_açık_mı", false);
-                            editor.apply();
-                            Toast.makeText(getContext(), "Hesaptan çıkış yapıldı", Toast.LENGTH_SHORT).show();
-                        })
-                        .setNegativeButton("Hayır", (dialogInterface, which) -> {
-                            // Hayır seçildiğinde sadece pop-up kapanır
-                            dialogInterface.dismiss();
-                        })
-                        .show();
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putBoolean("hesap_açık_mı", false);
+                        editor.apply();
+                        Toast.makeText(getContext(), "Hesaptan çıkış yapıldı", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNegativeButton("Hayır", (dialogInterface, which) -> {
+                        dialogInterface.dismiss();
+                    })
+                    .show();
 
-                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.WHITE);
-                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.WHITE);
-            }
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setTextColor(Color.WHITE);
+            dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setTextColor(Color.WHITE);
         });
 
-        btn_pp_değiştir.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                pp_or_post[0] = "pp";
-                startActivityForResult(intent, PICK_IMAGE_REQUEST);
-            }
+        btn_pp_değiştir.setOnClickListener(view -> {
+            Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            pp_or_post[0] = "pp";
+            startActivityForResult(intent, PICK_IMAGE_REQUEST);
         });
 
         //görsel ekleme
@@ -278,45 +265,42 @@ public class NotificationsFragment extends Fragment {
 
         });
 
-        btn_isim_değiştir.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                EditText editText = new EditText(getContext());
+        btn_isim_değiştir.setOnClickListener(view -> {
+            EditText editText = new EditText(getContext());
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
-                builder.setTitle("Yeni ismi giriniz")
-                        .setView(editText)
-                        .setPositiveButton("Tamam", (dialog, which) -> {
-                            String value = editText.getText().toString();
+            AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+            builder.setTitle("Yeni ismi giriniz")
+                    .setView(editText)
+                    .setPositiveButton("Tamam", (dialog, which) -> {
+                        String value = editText.getText().toString();
 
-                            db.collection("hesaplar")
-                                    .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
-                                    .get()
-                                    .addOnCompleteListener(task2 -> {
-                                        if (task2.isSuccessful()) {
-                                            if (!task2.getResult().isEmpty()) {
-                                                for (QueryDocumentSnapshot document2 : task2.getResult()) {
-                                                    // "bildirimler" alanına yeni eleman ekle
-                                                    db.collection("hesaplar")
-                                                            .document(document2.getId())
-                                                            .update("isim", value);
+                        db.collection("hesaplar")
+                                .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                                .get()
+                                .addOnCompleteListener(task2 -> {
+                                    if (task2.isSuccessful()) {
+                                        if (!task2.getResult().isEmpty()) {
+                                            for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                // "bildirimler" alanına yeni eleman ekle
+                                                db.collection("hesaplar")
+                                                        .document(document2.getId())
+                                                        .update("isim", value);
 
-                                                    String eski = sharedPreferences.getString("hesap_ismi", "");
-                                                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                                                    editor.putString("hesap_ismi", value);
-                                                    editor.apply();
+                                                String eski = sharedPreferences.getString("hesap_ismi", "");
+                                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                                editor.putString("hesap_ismi", value);
+                                                editor.apply();
 
-                                                    Toast.makeText(getContext(), "Kullanıcı ismi değiştirildi", Toast.LENGTH_SHORT).show();
-                                                    bildirim_ekle(value, "Kullanıcı ismi değiştirildi:<br><br><b>"+eski+"<br>↓<br>"+value+"</b><bildirim>pp");
-                                                }
+                                                Toast.makeText(getContext(), "Kullanıcı ismi değiştirildi", Toast.LENGTH_SHORT).show();
+                                                bildirim_ekle(value, "Kullanıcı ismi değiştirildi:<br><br><b>"+eski+"<br>↓<br>"+value+"</b><bildirim>pp");
                                             }
                                         }
-                                    });
-                        })
-                        .setNegativeButton("İptal", (dialog, which) -> dialog.dismiss());
+                                    }
+                                });
+                    })
+                    .setNegativeButton("İptal", (dialog, which) -> dialog.dismiss());
 
-                builder.show();
-            }
+            builder.show();
         });
 
         return root;
@@ -324,7 +308,7 @@ public class NotificationsFragment extends Fragment {
 
     private void bildirim_ekle(String hesap, String bildirim) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
-        Date specificDate = new Date();  // Örnek tarih, kendi tarihini burada belirleyebilirsin.
+        Date specificDate = new Date();
         String formattedDate = dateFormat.format(specificDate);
         db.collection("hesaplar")
                 .whereEqualTo("isim", hesap)
@@ -333,7 +317,6 @@ public class NotificationsFragment extends Fragment {
                     if (task2.isSuccessful()) {
                         if (!task2.getResult().isEmpty()) {
                             for (QueryDocumentSnapshot document2 : task2.getResult()) {
-                                // "bildirimler" alanına yeni eleman ekle
                                 db.collection("hesaplar")
                                         .document(document2.getId())
                                         .update("bildirimler", FieldValue.arrayUnion(bildirim + "<tarih>" + formattedDate));

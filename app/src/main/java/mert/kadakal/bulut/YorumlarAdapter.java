@@ -87,123 +87,113 @@ public class YorumlarAdapter extends BaseAdapter {
         yorum_tarihi = convertView.findViewById(R.id.yorum_tarihi);
         yorum_tarihi.setText(Html.fromHtml("<i>"+tarih+"</i>"));
 
-        yorumu_sil.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                db.collection("görseller").whereEqualTo("link", link).get()
-                        .addOnCompleteListener(task -> {
-                            if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                                for (DocumentSnapshot document : task.getResult()) {
-                                    List<String> yorumlarList = (List<String>) document.get("yorumlar");
+        yorumu_sil.setOnClickListener(view -> db.collection("görseller").whereEqualTo("link", link).get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                        for (DocumentSnapshot document : task.getResult()) {
+                            List<String> yorumlarList = (List<String>) document.get("yorumlar");
 
-                                    if (yorumlarList != null) {
-                                        for (int i = 0; i < yorumlarList.size(); i++) {
-                                            if (yorumlarList.get(i).equals(yorum_içeriği_str)) {
-                                                String silinen = yorumlarList.get(i);
-                                                yorumlarList.remove(i);
+                            if (yorumlarList != null) {
+                                for (int i = 0; i < yorumlarList.size(); i++) {
+                                    if (yorumlarList.get(i).equals(yorum_içeriği_str)) {
+                                        String silinen = yorumlarList.get(i);
+                                        yorumlarList.remove(i);
 
-                                                db.collection("görseller")
-                                                        .document(document.getId())
-                                                        .update("yorumlar", yorumlarList);
+                                        db.collection("görseller")
+                                                .document(document.getId())
+                                                .update("yorumlar", yorumlarList);
 
-                                                String görsel_başlığı = document.getString("başlık");
-                                                SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
-                                                Date specificDate = new Date();  // Örnek tarih, kendi tarihini burada belirleyebilirsin.
-                                                String formattedDate = dateFormat.format(specificDate);
-                                                db.collection("hesaplar")
-                                                        .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi",""))
-                                                        .get()
-                                                        .addOnCompleteListener(task2 -> {
-                                                            if (task2.isSuccessful()) {
-                                                                if (!task2.getResult().isEmpty()) {
-                                                                    for (QueryDocumentSnapshot document2 : task2.getResult()) {
-                                                                        // "bildirimler" alanına yeni eleman ekle
-                                                                        db.collection("hesaplar")
-                                                                                .document(document2.getId())
-                                                                                .update("bildirimler", FieldValue.arrayUnion("<b>"+ görsel_başlığı +"</b> adlı görsele yaptığınız yorumu sildiniz:<br><br><i>" + silinen.split("<br><br>")[1] + "</i><bildirim>yeni yorum<tarih>"+formattedDate));
-                                                                    }
-                                                                }
+                                        String görsel_başlığı = document.getString("başlık");
+                                        SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
+                                        Date specificDate = new Date();  // Örnek tarih, kendi tarihini burada belirleyebilirsin.
+                                        String formattedDate = dateFormat.format(specificDate);
+                                        db.collection("hesaplar")
+                                                .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi",""))
+                                                .get()
+                                                .addOnCompleteListener(task2 -> {
+                                                    if (task2.isSuccessful()) {
+                                                        if (!task2.getResult().isEmpty()) {
+                                                            for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                                db.collection("hesaplar")
+                                                                        .document(document2.getId())
+                                                                        .update("bildirimler", FieldValue.arrayUnion("<b>"+ görsel_başlığı +"</b> adlı görsele yaptığınız yorumu sildiniz:<br><br><i>" + silinen.split("<br><br>")[1] + "</i><bildirim>yeni yorum<tarih>"+formattedDate));
                                                             }
-                                                        });
+                                                        }
+                                                    }
+                                                });
 
-                                                Toast.makeText(context, "Yorumunuz silindi", Toast.LENGTH_SHORT).show();
-                                            }
-                                        }
+                                        Toast.makeText(context, "Yorumunuz silindi", Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             }
-                        });
-            }
+                        }
+                    }
+                }));
 
-        });
+        yorumu_düzenle.setOnClickListener(view -> {
+            EditText editText = new EditText(view.getContext());
+            editText.setText(yorum);
+            editText.setPadding(30, 60, 30, 25);
 
-        yorumu_düzenle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                EditText editText = new EditText(view.getContext());
-                editText.setText(yorum);
-                editText.setPadding(30, 60, 30, 25);
+            AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
+            builder.setView(editText)
+                    .setPositiveButton("Onayla", (dialog, which) -> {
+                        String value = editText.getText().toString();
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(view.getContext());
-                builder.setView(editText)
-                        .setPositiveButton("Onayla", (dialog, which) -> {
-                            String value = editText.getText().toString();
+                        db.collection("görseller").whereEqualTo("link", link).get()
+                                .addOnCompleteListener(task -> {
+                                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                                        for (DocumentSnapshot document : task.getResult()) {
+                                            List<String> yorumlarList = (List<String>) document.get("yorumlar");
 
-                            db.collection("görseller").whereEqualTo("link", link).get()
-                                    .addOnCompleteListener(task -> {
-                                        if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                                            for (DocumentSnapshot document : task.getResult()) {
-                                                List<String> yorumlarList = (List<String>) document.get("yorumlar");
+                                            if (yorumlarList != null) {
+                                                for (int i = 0; i < yorumlarList.size(); i++) {
+                                                    if (yorumlarList.get(i).equals(yorum_içeriği_str)) {
+                                                        String eski = yorumlarList.get(i).split("<br><br>")[1];
+                                                        yorumlarList.set(i, sharedPreferences.getString("hesap_ismi", "") + "<br><br>" + value + "<br><br>" + tarih);
 
-                                                if (yorumlarList != null) {
-                                                    for (int i = 0; i < yorumlarList.size(); i++) {
-                                                        if (yorumlarList.get(i).equals(yorum_içeriği_str)) {
-                                                            String eski = yorumlarList.get(i).split("<br><br>")[1];
-                                                            yorumlarList.set(i, sharedPreferences.getString("hesap_ismi", "") + "<br><br>" + value + "<br><br>" + tarih);
+                                                        String görsel_başlığı = document.getString("başlık");
+                                                        SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
+                                                        Date specificDate = new Date();
+                                                        String formattedDate = dateFormat.format(specificDate);
 
-                                                            String görsel_başlığı = document.getString("başlık");
-                                                            SimpleDateFormat dateFormat = new SimpleDateFormat("d MMMM yyyy, HH:mm", Locale.forLanguageTag("tr-TR"));
-                                                            Date specificDate = new Date();
-                                                            String formattedDate = dateFormat.format(specificDate);
-
-                                                            db.collection("hesaplar")
-                                                                    .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
-                                                                    .get()
-                                                                    .addOnCompleteListener(task2 -> {
-                                                                        if (task2.isSuccessful()) {
-                                                                            if (!task2.getResult().isEmpty()) {
-                                                                                for (QueryDocumentSnapshot document2 : task2.getResult()) {
-                                                                                    db.collection("hesaplar")
-                                                                                            .document(document2.getId())
-                                                                                            .update("bildirimler", FieldValue.arrayUnion("<b>" + görsel_başlığı + "</b> adlı görsele yaptığınız yorumu düzenlediniz:<br><br><i>" + eski + "</i><br>↓<br><i>" + value + "</i><bildirim>yeni yorum<tarih>" + formattedDate));
-                                                                                }
+                                                        db.collection("hesaplar")
+                                                                .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                                                                .get()
+                                                                .addOnCompleteListener(task2 -> {
+                                                                    if (task2.isSuccessful()) {
+                                                                        if (!task2.getResult().isEmpty()) {
+                                                                            for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                                                db.collection("hesaplar")
+                                                                                        .document(document2.getId())
+                                                                                        .update("bildirimler", FieldValue.arrayUnion("<b>" + görsel_başlığı + "</b> adlı görsele yaptığınız yorumu düzenlediniz:<br><br><i>" + eski + "</i><br>↓<br><i>" + value + "</i><bildirim>yeni yorum<tarih>" + formattedDate));
                                                                             }
                                                                         }
-                                                                    });
+                                                                    }
+                                                                });
 
-                                                            db.collection("görseller")
-                                                                    .document(document.getId())
-                                                                    .update("yorumlar", yorumlarList);
+                                                        db.collection("görseller")
+                                                                .document(document.getId())
+                                                                .update("yorumlar", yorumlarList);
 
-                                                            Toast.makeText(context, "Yorumunuz güncellendi", Toast.LENGTH_SHORT).show();
-                                                        }
+                                                        Toast.makeText(context, "Yorumunuz güncellendi", Toast.LENGTH_SHORT).show();
                                                     }
                                                 }
                                             }
                                         }
-                                    });
-                        })
-                        .setNegativeButton("İptal", (dialog, which) -> dialog.dismiss());
+                                    }
+                                });
+                    })
+                    .setNegativeButton("İptal", (dialog, which) -> dialog.dismiss());
 
-                AlertDialog dialog = builder.create();
-                dialog.show();
+            AlertDialog dialog = builder.create();
+            dialog.show();
 
-                Button positiveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
-                Button negativeButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
+            Button positiveButton = dialog.getButton(DialogInterface.BUTTON_POSITIVE);
+            Button negativeButton = dialog.getButton(DialogInterface.BUTTON_NEGATIVE);
 
-                positiveButton.setTextColor(Color.WHITE);
-                negativeButton.setTextColor(Color.WHITE);
-            }
+            positiveButton.setTextColor(Color.WHITE);
+            negativeButton.setTextColor(Color.WHITE);
         });
 
         return convertView;
