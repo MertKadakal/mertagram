@@ -335,6 +335,9 @@ public class NotificationsFragment extends Fragment {
     // Kullanıcı bir dosya seçtikten sonra bu metod çalışacak
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode != Activity.RESULT_OK || data == null || data.getData() == null) {
+            return;
+        }
 
         if (pp_or_post[0] == "pp") {
             // Örnek: Imgur'a yükleme işlemi
