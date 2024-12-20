@@ -154,7 +154,23 @@ public class DashboardAdapter extends BaseAdapter {
                                                                             // "bildirimler" alanına yeni eleman ekle
                                                                             db.collection("hesaplar")
                                                                                     .document(document2.getId())
-                                                                                    .update("bildirimler", FieldValue.arrayUnion("<b>"+sharedPreferences.getString("hesap_ismi", "") + "</b>, şu gönderini beğendi: <i>" + görsel_başlığı + "</i><bildirim>beğeni<tarih>" + formattedDate));
+                                                                                    .update("bildirimler", FieldValue.arrayUnion("<b>"+sharedPreferences.getString("hesap_ismi", "") + "</b>, şu gönderini beğendi: <i><br><br>" + görsel_başlığı + "</i><bildirim>beğeni<tarih>" + formattedDate));
+                                                                        }
+                                                                    }
+                                                                }
+                                                            });
+
+                                                    db.collection("hesaplar")
+                                                            .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                                                            .get()
+                                                            .addOnCompleteListener(task2 -> {
+                                                                if (task2.isSuccessful()) {
+                                                                    if (!task2.getResult().isEmpty()) {
+                                                                        for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                                            // "bildirimler" alanına yeni eleman ekle
+                                                                            db.collection("hesaplar")
+                                                                                    .document(document2.getId())
+                                                                                    .update("bildirimler", FieldValue.arrayUnion("<b>"+ görsel_sahibi +"</b>, adlı kullanıcının şu gönderisini beğendiniz: <i><br><br>" + görsel_başlığı + "</i><bildirim>beğeni<tarih>" + formattedDate));
                                                                         }
                                                                     }
                                                                 }

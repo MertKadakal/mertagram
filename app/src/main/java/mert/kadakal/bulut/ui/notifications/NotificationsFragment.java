@@ -10,7 +10,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.text.Html;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -23,10 +22,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
-import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -34,24 +31,22 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.w3c.dom.Text;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import mert.kadakal.bulut.R;
 import mert.kadakal.bulut.databinding.FragmentNotificationsBinding;
 import mert.kadakal.bulut.hesap_ekleme_ekranı;
-import mert.kadakal.bulut.ui.home.HomeFragment;
 import okhttp3.Call;
 import okhttp3.Callback;
 import okhttp3.MediaType;
@@ -234,10 +229,12 @@ public class NotificationsFragment extends Fragment {
                     .setMessage("Profil resminizi silmek istediğinize emin misiniz?")
                     .setPositiveButton("Evet", (dialogInterface, which) -> {
                         db.collection("hesaplar")
-                                .get().addOnCompleteListener(task -> {
-                                    if (task.isSuccessful()) {
-                                        for (QueryDocumentSnapshot document : task.getResult()) {
-                                            if (document.getString("isim").equals(sharedPreferences.getString("hesap_ismi", ""))) {
+                                .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                                .get()
+                                .addOnCompleteListener(task2 -> {
+                                    if (task2.isSuccessful()) {
+                                        if (!task2.getResult().isEmpty()) {
+                                            for (QueryDocumentSnapshot document : task2.getResult()) {
                                                 Map<String, Object> updatedField = new HashMap<>();
                                                 updatedField.put("pp_link", "");
 
@@ -246,8 +243,7 @@ public class NotificationsFragment extends Fragment {
 
                                                 Toast.makeText(getContext(), "Profil resmi silindi", Toast.LENGTH_SHORT).show();
 
-                                                String görsel_sahibi = document.getString("hesap");
-                                                bildirim_ekle(görsel_sahibi, "Profil resmi silindi<br>pp");
+                                                bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Profil resmi silindi<bildirim>pp");
                                             }
                                         }
                                     }
@@ -274,29 +270,87 @@ public class NotificationsFragment extends Fragment {
                     .setPositiveButton("Tamam", (dialog, which) -> {
                         String value = editText.getText().toString();
 
+                        if (value.equals(sharedPreferences.getString("hesap_ismi", ""))) {
+                            Toast.makeText(getContext(), "Farklı bir isim giriniz", Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+
+                        AtomicBoolean err = new AtomicBoolean(false);
                         db.collection("hesaplar")
-                                .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                                .whereEqualTo("isim", value)
                                 .get()
-                                .addOnCompleteListener(task2 -> {
-                                    if (task2.isSuccessful()) {
-                                        if (!task2.getResult().isEmpty()) {
-                                            for (QueryDocumentSnapshot document2 : task2.getResult()) {
-                                                // "bildirimler" alanına yeni eleman ekle
-                                                db.collection("hesaplar")
-                                                        .document(document2.getId())
-                                                        .update("isim", value);
-
-                                                String eski = sharedPreferences.getString("hesap_ismi", "");
-                                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                                editor.putString("hesap_ismi", value);
-                                                editor.apply();
-
-                                                Toast.makeText(getContext(), "Kullanıcı ismi değiştirildi", Toast.LENGTH_SHORT).show();
-                                                bildirim_ekle(value, "Kullanıcı ismi değiştirildi:<br><br><b>"+eski+"<br>↓<br>"+value+"</b><bildirim>pp");
-                                            }
+                                .addOnCompleteListener(task3 -> {
+                                    if (task3.isSuccessful()) {
+                                        if (!task3.getResult().isEmpty()) {
+                                            Toast.makeText(getContext(), "Bu isim zaten kullanılıyor", Toast.LENGTH_SHORT).show();
+                                            err.set(true);
                                         }
                                     }
+
+                                    // İlk kontrol tamamlandıktan sonra ikinci işleme başla
+                                    if (!err.get()) {
+                                        db.collection("hesaplar")
+                                                .whereEqualTo("isim", sharedPreferences.getString("hesap_ismi", ""))
+                                                .get()
+                                                .addOnCompleteListener(task2 -> {
+                                                    if (task2.isSuccessful()) {
+                                                        if (!task2.getResult().isEmpty()) {
+                                                            for (QueryDocumentSnapshot document2 : task2.getResult()) {
+                                                                // "bildirimler" alanına yeni eleman ekle
+                                                                db.collection("hesaplar")
+                                                                        .document(document2.getId())
+                                                                        .update("isim", value);
+
+                                                                String eski = sharedPreferences.getString("hesap_ismi", "");
+                                                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                                                editor.putString("hesap_ismi", value);
+                                                                editor.apply();
+
+                                                                Toast.makeText(getContext(), "Kullanıcı ismi değiştirildi", Toast.LENGTH_SHORT).show();
+                                                                bildirim_ekle(value, "Kullanıcı ismi değiştirildi:<br><br><b>" + eski + "<br>↓<br>" + value + "</b><bildirim>pp");
+
+                                                                //tüm yorumları kontrol et ve bu hesaba ait olanların isimlerini güncelle
+                                                                db.collection("görseller").get().addOnCompleteListener(task -> {
+                                                                    if (task.isSuccessful()) {
+                                                                        if (!task.getResult().isEmpty()) {
+                                                                            for (QueryDocumentSnapshot gorsel : task.getResult()) {
+                                                                                if (Objects.equals(gorsel.get("hesap"), eski)) {
+                                                                                    db.collection("görseller")
+                                                                                            .document(gorsel.getId())
+                                                                                            .update("hesap", sharedPreferences.getString("hesap_ismi",""));
+                                                                                }
+
+                                                                                List<String> yorumlar = (List<String>) gorsel.get("yorumlar");
+                                                                                if (yorumlar != null) {
+                                                                                    // Yeni bir liste oluştur ve güncellemeleri bu listede yap
+                                                                                    List<String> guncellenmisYorumlar = new ArrayList<>();
+
+                                                                                    for (String yorum : yorumlar) {
+                                                                                        String kalan = yorum.split("<br><br>")[1]+"<br><br>"+yorum.split("<br><br>")[2];
+                                                                                        if (yorum.split("<br><br>")[0].equals(eski)) {
+                                                                                            // Eski ismi yeni isimle değiştir
+                                                                                            yorum = sharedPreferences.getString("hesap_ismi", "") + "<br><br>" + kalan;
+                                                                                        }
+                                                                                        guncellenmisYorumlar.add(yorum);
+                                                                                    }
+
+                                                                                    // Güncellenmiş yorumları Firestore'a yaz
+                                                                                    db.collection("görseller")
+                                                                                            .document(gorsel.getId())
+                                                                                            .update("yorumlar", guncellenmisYorumlar);
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                });
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                    }
                                 });
+
+
                     })
                     .setNegativeButton("İptal", (dialog, which) -> dialog.dismiss());
 
@@ -477,7 +531,7 @@ public class NotificationsFragment extends Fragment {
 
                         db.collection("görseller").add(imageDb);
                         getActivity().runOnUiThread(() -> Toast.makeText(getActivity(), "Görsel başarıyla yüklendi!", Toast.LENGTH_SHORT).show());
-                        bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Yeni görsel yüklendi: <i>" + tem_başlık + "</i><bildirim>yeni görsel");
+                        bildirim_ekle(sharedPreferences.getString("hesap_ismi", ""), "Yeni görsel yüklendi:<br><br><i>" + tem_başlık + "</i><bildirim>yeni görsel");
                     } else {
                         db.collection("hesaplar")
                                 .get().addOnCompleteListener(task -> {

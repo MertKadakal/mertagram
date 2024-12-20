@@ -79,6 +79,7 @@ public class YorumlarAdapter extends BaseAdapter {
         }
 
         String yorum_içeriği_str = item;
+        Log.d("item", item);
         String yorumcu = item.split("<br><br>")[0];
         String yorum = item.split("<br><br>")[1];
         String tarih = item.split("<br><br>")[2];
