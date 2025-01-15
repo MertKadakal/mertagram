@@ -28,4 +28,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <ImageView
+        android:id="@+id/tüm_bildirimleri_sil"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="@drawable/remove"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="5dp"/>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
